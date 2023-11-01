@@ -12,7 +12,8 @@ export default NuxtAuthHandler({
         // @ts-expect-error
         GoogleProvider.default({
             clientId: process.env.NUXT_GOOGLE_CLIENT_ID,
-            clientSecret: process.env.NUXT_GOOGLE_CLIENT_SECRET
+            clientSecret: process.env.NUXT_GOOGLE_CLIENT_SECRET,
+            allowDangerousEmailAccountLinking: true
         })
     ]
 });
