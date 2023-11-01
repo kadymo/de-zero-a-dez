@@ -6,8 +6,16 @@ export default defineEventHandler(async (event) => {
 
     const session = await getServerSession(event);
 
-    const user = await prisma.user.findUnique({
-        where: { id: session?.user?.email! },
+    if (!session) {
+        throw createError({
+            status: 400
+        });
+    }
+
+    const user = await prisma.user.findFirst({
+        where: {
+            email: session.user?.email
+        },
         include: { rankings: true }
     });
 
@@ -21,7 +29,7 @@ export default defineEventHandler(async (event) => {
             }
         });
 
-        return
+        return;
     }
 
     await prisma.ranking.create({
