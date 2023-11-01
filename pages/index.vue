@@ -63,7 +63,7 @@ const { data: templates } = await useFetch("/api/templates", {
             </UModal>
         </main>
 
-        <footer class="max-h-max border-t border-zinc-700 py-2 text-center">
+        <footer class="max-h-max border-t border-zinc-700 p-2 text-center">
             Site inspirado no programa
             <a
                 class="text-primary hover:underline"
