@@ -11,7 +11,7 @@ defineProps<{
     <ul class="grid min-h-full gap-6 sm:gap-10 md:grid-cols-2 xl:grid-cols-3">
         <li v-for="template in templates">
             <NuxtLink
-                :to="template.id ? `/ranking/${template.id}` : ''"
+                :to="!action ? `/ranking/${template.id}` : ''"
                 class="relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-700 shadow-sm hover:border-yellow-500"
             >
                 <TemplateCardButton v-if="action" :action="action" :templateId="template.id" />
