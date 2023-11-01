@@ -46,7 +46,7 @@ const columns = useStorage(`columns_${route.params.id}`, [
     { index: 10, items: ["/transparent.png"] }
 ]);
 
-const { data: userRankings } = await useFetch("/api/rankings/user");
+const { data: userRankings } = await useFetch("/api/user/rankings");
 const savedRanking = userRankings.value?.find((r) => r.id === route.params.id);
 if (savedRanking) columns.value = savedRanking.columns;
 
