@@ -40,7 +40,7 @@ const deleteRanking = async () => {
 
 <template>
     <UButton
-        @click="action === 'delete' ? (modal = true) : null"
+        @click.prevent="action === 'delete' ? (modal = true) : null"
         :to="action === 'edit' ? `/profile/template/${templateId}` : null"
         :icon="action === 'edit' ? 'i-heroicons-pencil' : 'i-heroicons-trash'"
         variant="solid"
