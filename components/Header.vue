@@ -28,7 +28,7 @@ const accountItems = ref([
     <header
         class="flex w-full flex-col items-center justify-between gap-6 border-b border-zinc-700 px-6 py-6 sm:flex-row sm:px-20"
     >
-        <NuxtImg src="/logo.png" quality="100" height="65" preload />
+        <NuxtImg src="/logo.png" quality="100" height="64" class="h-16" preload />
 
         <UButton
             v-if="!isAuthenticated"
