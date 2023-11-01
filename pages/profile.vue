@@ -6,17 +6,36 @@ definePageMeta({
 });
 
 const router = useRouter();
+const toast = useToast();
 
 const items = [
     { key: "templates", label: "Meus templates", icon: "i-heroicons-clipboard" },
     { key: "rankings", label: "Meus rankings", icon: "i-heroicons-list-bullet" }
 ];
 
-const { data: templates } = await useFetch("/api/user/templates", {
+const { data: templates, error: templatesError } = await useFetch("/api/user/templates", {
     watch: [router.currentRoute]
 });
 
-const { data: rankings } = await useFetch("/api/user/rankings");
+const { data: rankings, error: rankingsError } = await useFetch("/api/user/rankings");
+
+if (templatesError.value) {
+    toast.add({
+        id: "error",
+        title: "Não foi possível recuperar os seus templates.",
+        description: "Tente novamente mais tarde.",
+        color: "red"
+    });
+}
+
+if (rankingsError.value) {
+    toast.add({
+        id: "error",
+        title: "Não foi possível recuperar os seus rankings.",
+        description: "Tente novamente mais tarde.",
+        color: "red"
+    });
+}
 
 // const user = {
 //     name: "Kádymo Santana",

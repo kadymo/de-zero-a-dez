@@ -51,7 +51,7 @@ const { data: templates } = await useFetch("/api/templates", {
                 </UTooltip>
             </div>
 
-            <TemplatesList v-if="templates.length" :templates="templates" />
+            <TemplatesList v-if="templates?.length" :templates="templates" />
             <div v-else class="h-full text-center">
                 <span class="text-center text-2xl text-gray-500">
                     Nenhum template encontrado.
