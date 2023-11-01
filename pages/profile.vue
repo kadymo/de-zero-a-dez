@@ -12,11 +12,11 @@ const items = [
     { key: "rankings", label: "Meus rankings", icon: "i-heroicons-list-bullet" }
 ];
 
-const templates = await useFetch("/api/user/templates", {
+const { data: templates } = await useFetch("/api/user/templates", {
     watch: [router.currentRoute]
 });
 
-const rankings = await useFetch("/api/user/rankings");
+const { data: rankings } = await useFetch("/api/user/rankings");
 
 // const user = {
 //     name: "Kádymo Santana",
