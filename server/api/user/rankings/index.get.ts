@@ -4,9 +4,15 @@ import { prisma } from "@/server/lib/prisma";
 export default defineEventHandler(async (event) => {
     const session = await getServerSession(event);
 
-    const user = await prisma.user.findUnique({
+    if (!session) {
+        throw createError({
+            status: 400
+        });
+    }
+
+    const user = await prisma.user.findFirst({
         where: {
-            email: session?.user?.email!
+            email: session?.user?.email
         }
     });
 
@@ -15,8 +21,12 @@ export default defineEventHandler(async (event) => {
             userId: user?.id
         },
 
+        include: { template: true },
+
         orderBy: { createdAt: "desc" }
     });
 
-    return rankings;
+    const rankingsTemplates = rankings.map((r) => r.template);
+
+    return rankingsTemplates;
 });
