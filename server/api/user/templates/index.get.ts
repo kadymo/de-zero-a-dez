@@ -19,7 +19,8 @@ export default defineEventHandler(async (event) => {
     const templates = await prisma.template.findMany({
         where: {
             userId: user!.id
-        }
+        },
+        orderBy: { createdAt: "desc" }
     });
 
     return templates;
