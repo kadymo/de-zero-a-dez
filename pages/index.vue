@@ -46,7 +46,7 @@ const { data: templates } = await useFetch("/api/templates", {
                         variant="solid"
                         label="Criar template"
                         :trailing="false"
-                        :disabled="isAuthenticated"
+                        :disabled="!isAuthenticated"
                     />
                 </UTooltip>
             </div>
