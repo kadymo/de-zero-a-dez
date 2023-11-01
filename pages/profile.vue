@@ -120,28 +120,28 @@ const { data: rankings } = await useFetch("/api/user/rankings");
 
                 <template #item="{ item }">
                     <TemplatesList
-                        v-if="item.key === 'templates' && templates.length"
+                        v-if="item.key === 'templates' && templates"
                         :templates="templates"
                         action="edit"
                         class="mt-10"
                     />
 
                     <p
-                        v-if="item.key === 'templates' && !templates.length"
+                        v-if="item.key === 'templates' && !templates"
                         class="mt-10 text-center text-xl text-gray-500"
                     >
                         Você ainda não criou nenhum template.
                     </p>
 
                     <TemplatesList
-                        v-if="item.key === 'rankings' && rankings.length"
+                        v-if="item.key === 'rankings' && rankings"
                         :templates="rankings"
                         action="delete"
                         class="mt-10"
                     />
 
                     <p
-                        v-if="item.key === 'rankings' && !rankings.length"
+                        v-if="item.key === 'rankings' && !rankings"
                         class="mt-10 text-center text-xl text-gray-500"
                     >
                         Você ainda não salvou nenhum ranking.
