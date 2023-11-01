@@ -1,0 +1,65 @@
+<script setup lang="ts">
+const { status, data, signIn, signOut } = useAuth();
+const isAuthenticated = computed(() => (status.value === "authenticated" ? true : false));
+
+const router = useRouter();
+
+const accountItems = ref([
+    [
+        {
+            label: "Meu perfil",
+            icon: "i-heroicons-document",
+            click() {
+                router.push("/profile");
+            }
+        },
+        {
+            label: "Sair",
+            icon: "i-heroicons-arrow-left-on-rectangle",
+            click() {
+                signOut({ callbackUrl: "/" });
+            }
+        }
+    ]
+]);
+</script>
+
+<template>
+    <header
+        class="flex w-full flex-col items-center justify-between gap-6 border-b border-zinc-700 px-6 py-6 sm:flex-row sm:px-20"
+    >
+        <NuxtImg src="/logo.png" quality="100" height="65" preload />
+
+        <UButton
+            v-if="!isAuthenticated"
+            @click="signIn('google')"
+            class="flex w-full justify-center sm:w-auto"
+            label="Fazer login"
+            size="xl"
+            variant="solid"
+            color="white"
+            icon="i-simple-icons-google"
+        />
+
+        <UDropdown
+            v-else
+            :items="accountItems"
+            mode="hover"
+            :popper="{ placement: 'bottom-start' }"
+        >
+            <UButton :label="data?.user?.name!" variant="solid" color="white">
+                <template #leading>
+                    <UAvatar :src="data?.user?.image!" />
+                </template>
+
+                <template #item="{ item }">
+                    <span class="truncate">{{ item.label }}</span>
+                    <UIcon
+                        :name="item.icon"
+                        class="ms-auto h-4 w-4 flex-shrink-0 text-gray-400 dark:text-gray-500"
+                    />
+                </template>
+            </UButton>
+        </UDropdown>
+    </header>
+</template>
