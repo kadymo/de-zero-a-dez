@@ -26,12 +26,6 @@ const aspectRatioOptions = [
     }
 ];
 
-const { data: template } = await useFetch(`/api/templates/${route.params.id}`);
-
-const displayedItems = computed(() => {
-    return template.value?.items.filter((i) => !JSON.stringify(columns.value).includes(i));
-});
-
 const columns = useStorage(`columns_${route.params.id}`, [
     { index: 0, items: ["/transparent.png"] },
     { index: 1, items: ["/transparent.png"] },
@@ -45,6 +39,12 @@ const columns = useStorage(`columns_${route.params.id}`, [
     { index: 9, items: ["/transparent.png"] },
     { index: 10, items: ["/transparent.png"] }
 ]);
+
+const { data: template } = await useFetch(`/api/templates/${route.params.id}`);
+
+const displayedItems = computed(() => {
+    return template.value?.items.filter((i) => !JSON.stringify(columns.value).includes(i));
+});
 
 const { data: userRankings } = await useFetch("/api/user/rankings");
 const savedRanking = userRankings.value?.find((r) => r.id === route.params.id);
