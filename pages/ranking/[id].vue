@@ -110,6 +110,9 @@ const saveRanking = async () => {
             description: "Tente novamente mais tarde.",
             color: "red"
         });
+
+        isSaving.value = false;
+        return;
     }
 
     toast.add({
