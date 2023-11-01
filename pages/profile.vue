@@ -16,13 +16,13 @@ const templates = await useFetch("/api/user/templates", {
     watch: [router.currentRoute]
 });
 
-// const rankings = await useFetch("/api/user/rankings");
+const rankings = await useFetch("/api/user/rankings");
 
-const user = {
-    name: "Kádymo Santana",
-    email: "santanakadymo@gmail.com",
-    image: "https://lh3.googleusercontent.com/a/ACg8ocJ8pGWDYMaFcwg39gRa0tNkdOqZCOAp-mqk95hhemaMaI0=s96-c"
-};
+// const user = {
+//     name: "Kádymo Santana",
+//     email: "santanakadymo@gmail.com",
+//     image: "https://lh3.googleusercontent.com/a/ACg8ocJ8pGWDYMaFcwg39gRa0tNkdOqZCOAp-mqk95hhemaMaI0=s96-c"
+// };
 
 // const templates = [
 //     {
@@ -57,19 +57,19 @@ const user = {
 //     }
 // ];
 
-const rankings = [
-    {
-        name: "Personagens de The Office",
-        description: "Ranqueie os personagens de The Office de zero a dez.",
-        cover: "https://s2-techtudo.glbimg.com/7K-SuDghukKZOsJQadz-thEshyA=/0x0:1200x700/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_08fbf48bc0524877943fe86e43087e7a/internal_photos/bs/2023/X/s/DtXUAyRLCB6hx8Xy5TRg/the-office-2.jpg"
-    },
+// const rankings = [
+//     {
+//         name: "Personagens de The Office",
+//         description: "Ranqueie os personagens de The Office de zero a dez.",
+//         cover: "https://s2-techtudo.glbimg.com/7K-SuDghukKZOsJQadz-thEshyA=/0x0:1200x700/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_08fbf48bc0524877943fe86e43087e7a/internal_photos/bs/2023/X/s/DtXUAyRLCB6hx8Xy5TRg/the-office-2.jpg"
+//     },
 
-    {
-        name: "Linguagens de programação",
-        description: "Ranqueie as linguagens de programação de zero a dez.",
-        cover: "https://miro.medium.com/v2/resize:fit:1024/1*jkOCjQlkGZjbhWdvh7LfRA.png"
-    }
-];
+//     {
+//         name: "Linguagens de programação",
+//         description: "Ranqueie as linguagens de programação de zero a dez.",
+//         cover: "https://miro.medium.com/v2/resize:fit:1024/1*jkOCjQlkGZjbhWdvh7LfRA.png"
+//     }
+// ];
 </script>
 
 <template>
@@ -87,16 +87,16 @@ const rankings = [
             class="flex flex-col items-center gap-8 rounded-2xl border border-zinc-700 p-6 md:flex-row md:p-10"
         >
             <NuxtImg
-                :src="user.image!"
+                :src="data.user?.image!"
                 alt="Foto de perfil"
                 quality="80"
                 class="w-28 rounded-full md:w-44"
             />
 
             <div class="text-center md:text-start">
-                <h1 class="text-3xl font-bold md:mb-2 md:text-5xl">{{ user.name }}</h1>
+                <h1 class="text-3xl font-bold md:mb-2 md:text-5xl">{{ data.user?.name }}</h1>
 
-                <p class="mb-4 text-base md:text-xl">{{ user.email }}</p>
+                <p class="mb-4 text-base md:text-xl">{{ data.user?.email }}</p>
 
                 <UButton
                     @click="signOut({ callbackUrl: '/' })"
