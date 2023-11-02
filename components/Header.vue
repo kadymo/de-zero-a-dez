@@ -8,7 +8,7 @@ const accountItems = ref([
     [
         {
             label: "Meu perfil",
-            icon: "i-heroicons-document",
+            icon: "i-heroicons-user",
             click() {
                 router.push("/profile");
             }
