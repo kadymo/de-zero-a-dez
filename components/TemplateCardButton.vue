@@ -17,7 +17,7 @@ const deleteRanking = async () => {
         method: "DELETE"
     });
 
-    if (error) {
+    if (error.value) {
         toast.add({
             id: "error",
             title: "Não foi possível excluir o template.",
