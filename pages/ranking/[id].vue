@@ -67,6 +67,8 @@ const handleUploadSubmit = async () => {
         isUploading.value = true;
 
         const formData = new FormData();
+        formData.append("upload_preset", "ml_default");
+        formData.append("folder", "De Zero a Dez");
 
         const filesUrls = [];
         for (let i = 0; i < items.value.length; i++) {
