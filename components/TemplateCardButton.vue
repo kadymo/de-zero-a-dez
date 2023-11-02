@@ -36,11 +36,18 @@ const deleteRanking = async () => {
         color: "green"
     });
 };
+
+const handleClick = (e: Event) => {
+    if (action === "delete") {
+        e.preventDefault();
+        modal.value = true;
+    }
+};
 </script>
 
 <template>
     <UButton
-        @click.prevent="action === 'delete' ? (modal = true) : null"
+        @click="handleClick"
         :to="action === 'edit' ? `/profile/template/${templateId}` : null"
         :icon="action === 'edit' ? 'i-heroicons-pencil' : 'i-heroicons-trash'"
         variant="solid"
