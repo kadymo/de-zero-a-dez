@@ -26,14 +26,15 @@ const accountItems = ref([
 
 <template>
     <header
-        class="flex w-full flex-col items-center justify-between gap-6 border-b border-zinc-700 px-6 py-6 sm:flex-row sm:px-20"
+        :class="{ 'flex-col': isAuthenticated, 'flex-row': !isAuthenticated }"
+        class="flex w-full items-center justify-between gap-6 border-b border-zinc-700 px-6 py-6 sm:flex-row sm:px-20"
     >
         <NuxtImg src="/logo.png" quality="100" height="64" class="h-16" preload />
 
         <UButton
             v-if="!isAuthenticated"
             @click="signIn('google')"
-            class="flex w-full justify-center sm:w-auto"
+            class="flex justify-center sm:w-auto"
             label="Fazer login"
             size="xl"
             variant="solid"
