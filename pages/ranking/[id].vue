@@ -48,7 +48,7 @@ const displayedItems = computed(() => {
 });
 
 const { data: userRankings } = await useFetch("/api/user/rankings");
-const savedRanking = userRankings.value?.find((r) => r.id === route.params.id);
+const savedRanking = userRankings.value?.find((r) => r.templateId === route.params.id);
 if (savedRanking) columns.value = savedRanking.columns;
 
 const modal = ref(false);
