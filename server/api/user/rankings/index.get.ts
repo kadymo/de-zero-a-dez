@@ -26,7 +26,5 @@ export default defineEventHandler(async (event) => {
         orderBy: { createdAt: "desc" }
     });
 
-    const rankingsTemplates = rankings.map((r) => r.template);
-
-    return rankingsTemplates;
+    return rankings;
 });
