@@ -17,7 +17,7 @@ const { data: templates, error: templatesError } = await useFetch("/api/user/tem
     watch: [router.currentRoute]
 });
 
-const { data: rankings, error: rankingsError } = await useFetch("/api/user/rankings");
+const { data: rankings, error: rankingsError } = await useFetch("/api/user/rankings/templates");
 
 if (templatesError.value) {
     toast.add({
