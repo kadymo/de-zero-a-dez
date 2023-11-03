@@ -52,7 +52,7 @@ const { data: templates } = await useFetch("/api/templates", {
             </div>
 
             <TemplatesList v-if="templates?.length" :templates="templates" />
-            <div v-else class="h-full text-center">
+            <div v-else class="h-[32rem] text-center">
                 <span class="text-center text-2xl text-gray-500">
                     Nenhum template encontrado.
                 </span>
@@ -63,7 +63,7 @@ const { data: templates } = await useFetch("/api/templates", {
             </UModal>
         </main>
 
-        <footer class="max-h-max border-t border-zinc-700 p-2 text-center">
+        <footer class="max-h-10 border-t border-zinc-700 p-2 text-center">
             Site inspirado no programa
             <a
                 class="text-primary hover:underline"
