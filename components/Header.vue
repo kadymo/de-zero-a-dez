@@ -45,10 +45,16 @@ const accountItems = ref([
         <UDropdown
             v-else
             :items="accountItems"
-            mode="hover"
             :popper="{ placement: 'bottom-start' }"
+            mode="hover"
+            class="w-full"
         >
-            <UButton :label="data?.user?.name!" variant="solid" color="white">
+            <UButton
+                :label="'kadymo'"
+                variant="solid"
+                color="white"
+                class="flex w-full justify-center"
+            >
                 <template #leading>
                     <UAvatar :src="data?.user?.image!" />
                 </template>
