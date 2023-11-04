@@ -50,7 +50,7 @@ const accountItems = ref([
             class="w-full"
         >
             <UButton
-                :label="'kadymo'"
+                :label="data?.user?.name!"
                 variant="solid"
                 color="white"
                 class="flex w-full justify-center"
