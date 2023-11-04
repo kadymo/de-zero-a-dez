@@ -5,6 +5,20 @@ export default defineEventHandler(async (event) => {
     const { id } = getRouterParams(event);
     const { name, description, isPublic, coverUrl, filesUrls } = await readBody(event);
 
+    const currentFilesUrls = (
+        await prisma.template.findUnique({
+            where: { id }
+        })
+    )?.items;
+
+    if (!currentFilesUrls) {
+        throw createError({
+            status: 400
+        });
+    }
+
+    const allFilesUrls = [...currentFilesUrls, ...filesUrls];
+
     await prisma.template.update({
         where: { id },
         data: {
@@ -12,7 +26,7 @@ export default defineEventHandler(async (event) => {
             description,
             isPublic: isPublic === 1 ? true : false,
             cover: coverUrl,
-            items: filesUrls
+            items: allFilesUrls
         }
     });
 });
