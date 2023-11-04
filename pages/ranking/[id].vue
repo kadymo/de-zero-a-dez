@@ -41,10 +41,13 @@ const columns = useStorage(`columns_${route.params.id}`, [
 ]);
 
 const { data: template } = await useFetch(`/api/templates/${route.params.id}`);
-const storedTemplate = useStorage(`template_${route.params.id}`, template.value);
+
+const storedUploads = useStorage(`uploads_${route.params.id}`, []);
 
 const displayedItems = computed(() => {
-    return storedTemplate.value?.items.filter((i) => !JSON.stringify(columns.value).includes(i));
+    const allItems = [...template.value?.items!, ...storedUploads.value];
+
+    return allItems.filter((i) => !JSON.stringify(columns.value).includes(i));
 });
 
 const { data: userRankings } = await useFetch("/api/user/rankings");
@@ -86,7 +89,8 @@ const handleUploadSubmit = async () => {
             filesUrls.push(fileUpload.value?.secure_url);
         }
 
-        template.value?.items.push(...filesUrls);
+        const validItems = filesUrls.filter((i) => i !== undefined);
+        if (validItems) storedUploads.value.push(...validItems);
 
         isUploading.value = false;
         modal.value = false;
