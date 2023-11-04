@@ -47,7 +47,7 @@ const accountItems = ref([
             :items="accountItems"
             :popper="{ placement: 'bottom-start' }"
             mode="hover"
-            class="w-full"
+            class="w-full sm:w-auto"
         >
             <UButton
                 :label="data?.user?.name!"
