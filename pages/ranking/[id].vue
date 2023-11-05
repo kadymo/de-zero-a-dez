@@ -135,7 +135,7 @@ const saveRanking = async () => {
 
 <template>
     <ClientOnly>
-        <div v-if="template" class="content min-h-screen w-screen p-10 lg:p-20">
+        <div v-if="template" class="content min-h-screen w-screen p-6 lg:p-20">
             <h1 class="mb-8 border-b border-zinc-700 pb-4 text-3xl font-bold lg:text-5xl">
                 <span class="text-primary text-xl lg:text-2xl">TEMA:</span>
                 {{ template.name }}
