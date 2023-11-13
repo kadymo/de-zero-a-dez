@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="180" src="https://github.com/kadymosantana/de-zero-a-dez/assets/98963793/995136ff-a0fe-4605-ba5c-27d833cf75b8"/>
+  <img width="180" src="https://github.com/kadymosantana/de-zero-a-dez/assets/98963793/58aa9cc9-f316-4c9c-b1c0-d87aa4e593e9"/>
 </div>
 <div>‎</div>
 
@@ -9,8 +9,8 @@ Sou fã do site Tier Maker e do programa De Zero a Dez da TNT Sports, onde ranqu
 
 O site permite o usuário <b>criar templates personalizados</b> públicos e privados ao fazer login em uma conta. Os templates públicos são adicionados à seção "templates da comunidade" na página inicial.
 
-<img width="100%" src="https://github.com/kadymosantana/de-zero-a-dez/assets/98963793/c6d666bf-717b-4d77-905f-752d9931a160"/>
-<img width="100%" src="https://github.com/kadymosantana/de-zero-a-dez/assets/98963793/3a44bc78-2b4e-4552-8a05-a3a5f2caa8d5"/>
+<img width="100%" src="https://github.com/kadymosantana/de-zero-a-dez/assets/98963793/67b1cb9d-04b9-417a-99ed-c21ea526647a"/>
+<img width="100%" src="https://github.com/kadymosantana/de-zero-a-dez/assets/98963793/3208430b-a073-4490-9467-33f0f9671134"/>
 
 ## 🛠️ Ferramentas utilizadas
 Utilizei as seguintes ferramentas ao longo do desenvolvimento:
