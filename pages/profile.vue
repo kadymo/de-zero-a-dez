@@ -36,59 +36,6 @@ if (rankingsError.value) {
         color: "red"
     });
 }
-
-// const user = {
-//     name: "Kádymo Santana",
-//     email: "santanakadymo@gmail.com",
-//     image: "https://lh3.googleusercontent.com/a/ACg8ocJ8pGWDYMaFcwg39gRa0tNkdOqZCOAp-mqk95hhemaMaI0=s96-c"
-// };
-
-// const templates = [
-//     {
-//         name: "Rações",
-//         description: "Ranqueie as rações de zero a dez.",
-//         cover: "https://cdn.awsli.com.br/600x450/203/203612/produto/7272131/695db023d4.jpg"
-//     },
-//     {
-//         name: "Personagens de The Office",
-//         description: "Ranqueie os personagens de The Office de zero a dez.",
-//         cover: "https://s2-techtudo.glbimg.com/7K-SuDghukKZOsJQadz-thEshyA=/0x0:1200x700/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_08fbf48bc0524877943fe86e43087e7a/internal_photos/bs/2023/X/s/DtXUAyRLCB6hx8Xy5TRg/the-office-2.jpg"
-//     },
-//     {
-//         name: "Linguagens de programação",
-//         description: "Ranqueie as linguagens de programação de zero a dez.",
-//         cover: "https://miro.medium.com/v2/resize:fit:1024/1*jkOCjQlkGZjbhWdvh7LfRA.png"
-//     },
-//     {
-//         name: "Rações",
-//         description: "Ranqueie as rações de zero a dez.",
-//         cover: "https://cdn.awsli.com.br/600x450/203/203612/produto/7272131/695db023d4.jpg"
-//     },
-//     {
-//         name: "Personagens de The Office",
-//         description: "Ranqueie os personagens de The Office de zero a dez.",
-//         cover: "https://s2-techtudo.glbimg.com/7K-SuDghukKZOsJQadz-thEshyA=/0x0:1200x700/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_08fbf48bc0524877943fe86e43087e7a/internal_photos/bs/2023/X/s/DtXUAyRLCB6hx8Xy5TRg/the-office-2.jpg"
-//     },
-//     {
-//         name: "Linguagens de programação",
-//         description: "Ranqueie as linguagens de programação de zero a dez.",
-//         cover: "https://miro.medium.com/v2/resize:fit:1024/1*jkOCjQlkGZjbhWdvh7LfRA.png"
-//     }
-// ];
-
-// const rankings = [
-//     {
-//         name: "Personagens de The Office",
-//         description: "Ranqueie os personagens de The Office de zero a dez.",
-//         cover: "https://s2-techtudo.glbimg.com/7K-SuDghukKZOsJQadz-thEshyA=/0x0:1200x700/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_08fbf48bc0524877943fe86e43087e7a/internal_photos/bs/2023/X/s/DtXUAyRLCB6hx8Xy5TRg/the-office-2.jpg"
-//     },
-
-//     {
-//         name: "Linguagens de programação",
-//         description: "Ranqueie as linguagens de programação de zero a dez.",
-//         cover: "https://miro.medium.com/v2/resize:fit:1024/1*jkOCjQlkGZjbhWdvh7LfRA.png"
-//     }
-// ];
 </script>
 
 <template>

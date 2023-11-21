@@ -114,23 +114,6 @@ const createTemplate = async () => {
         filesUrls.push(fileUpload.value?.secure_url);
     }
 
-    // const urls = Array.from(templateItems.value!).map(async (item) => {
-    //     formData.append("file", item);
-
-    //     const { data: fileUpload } = await useFetch<Upload>(
-    //         "https://api.cloudinary.com/v1_1/dcxlgeobi/image/upload",
-    //         {
-    //             method: "POST",
-    //             body: formData
-    //         }
-    //     );
-
-    //     return fileUpload.value?.secure_url;
-    // });
-
-    // const filesUrls = await Promise.all(urls);
-    // console.log(filesUrls);
-
     const { error } = await useFetch(`/api/templates`, {
         method: "POST",
         body: {
