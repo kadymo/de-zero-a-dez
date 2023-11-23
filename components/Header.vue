@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { status, data, signIn, signOut } = useAuth();
-const isAuthenticated = computed(() => (status.value === "authenticated" ? true : false));
+const isAuthenticated = computed(() => status.value === "authenticated");
 
 const router = useRouter();
 

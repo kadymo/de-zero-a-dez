@@ -8,9 +8,7 @@ const { status } = useAuth();
 const route = useRoute();
 const toast = useToast();
 
-const isAuthenticated = computed(() => {
-    return status.value === "authenticated" ? true : false;
-});
+const isAuthenticated = computed(() => status.value === "authenticated");
 
 const aspectRatio = ref("square");
 const aspectRatioOptions = [

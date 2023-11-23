@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { status } = useAuth();
-const isAuthenticated = computed(() => (status.value === "authenticated" ? true : false));
+const isAuthenticated = computed(() => status.value === "authenticated");
 
 const modal = ref(false);
 const toggleModal = () => {
