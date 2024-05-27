@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
             description,
             isPublic: isPublic === 1 ? true : false,
             cover: coverUrl,
-            items: allFilesUrls
+            items: filesUrls.length ? allFilesUrls : currentFilesUrls
         }
     });
 });
