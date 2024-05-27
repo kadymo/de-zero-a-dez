@@ -17,8 +17,6 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const allFilesUrls = [...currentFilesUrls, ...filesUrls];
-
     await prisma.template.update({
         where: { id },
         data: {
@@ -26,7 +24,7 @@ export default defineEventHandler(async (event) => {
             description,
             isPublic: isPublic === 1 ? true : false,
             cover: coverUrl,
-            items: filesUrls.length ? allFilesUrls : currentFilesUrls
+            items: filesUrls.length ? [...currentFilesUrls, ...filesUrls] : currentFilesUrls
         }
     });
 });
