@@ -12,7 +12,7 @@ The site allows users to <b>create custom templates</b> that can be public or pr
 <img width="100%" src="https://github.com/kadymosantana/de-zero-a-dez/assets/98963793/67b1cb9d-04b9-417a-99ed-c21ea526647a"/>
 <img width="100%" src="https://github.com/kadymosantana/de-zero-a-dez/assets/98963793/3208430b-a073-4490-9467-33f0f9671134"/>
 
-## 🛠️ Ferramentas utilizadas
+## 🛠️ Technologies
 The following technologies were used during development
 
 - HTML5;
