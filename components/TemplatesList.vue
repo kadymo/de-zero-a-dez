@@ -24,7 +24,7 @@ defineProps<{
                 />
 
                 <div class="flex-1 p-3">
-                    <h3 class="mb-1 text-lg font-semibold leading-tight">
+                    <h3 class="mb-1 text-lg font-bold leading-tight">
                         {{ template.name }}
                     </h3>
                     <p class="text-sm text-gray-300">{{ template.description }}</p>
