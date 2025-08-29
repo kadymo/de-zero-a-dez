@@ -48,7 +48,8 @@ export default defineNuxtConfig({
         preconnect: true,
         preload: true,
         families: {
-            "DM+Sans": true
-        }
+            "Poppins": [400, 500, 600, 700, 800, 900]
+        },
+
     }
 });
