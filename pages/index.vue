@@ -23,7 +23,7 @@ const { data: templates } = await useFetch("/api/templates", {
         <Header />
 
         <main class="flex flex-col justify-center space-y-10 px-6 py-10 sm:px-20">
-            <h2 class="text-3xl font-semibold">Templates da comunidade</h2>
+            <h2 class="text-3xl font-bold">Templates da comunidade</h2>
 
             <div class="mb- flex w-full flex-col gap-4 sm:flex-row">
                 <UInput
