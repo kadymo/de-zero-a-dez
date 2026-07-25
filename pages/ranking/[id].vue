@@ -294,7 +294,7 @@ const getItemKey = (item: any) => item;
                                 class="flex flex-row justify-between gap-2 sm:gap-3 overflow-x-auto min-h-[380px] pb-2"
                             >
                                 <template #item="{ element }">
-                                    <div class="flex flex-col flex-1 min-w-[76px] sm:min-w-[90px] items-center gap-2 rounded-xl bg-zinc-950 p-2 border border-zinc-800/80">
+                                    <div class="flex flex-col flex-1 min-w-[84px] sm:min-w-[102px] items-center gap-2 rounded-xl bg-zinc-950 p-2 border border-zinc-800/80">
                                         <!-- Score Header Badge (0-10) -->
                                         <div
                                             :class="getScoreColorClass(element.index)"
@@ -310,16 +310,16 @@ const getItemKey = (item: any) => item;
                                             :animation="150"
                                             tag="ul"
                                             group="items"
-                                            class="w-full flex-1 flex flex-col items-center gap-2 min-h-[300px] p-1 rounded-lg border border-dashed border-zinc-800 bg-zinc-900/40 overflow-y-auto"
+                                            class="w-full flex-1 flex flex-col items-center gap-2 min-h-[320px] p-1 rounded-lg border border-dashed border-zinc-800 bg-zinc-900/40 overflow-y-auto"
                                         >
                                             <template #item="{ element: item }">
                                                 <li v-if="item !== '/transparent.png'" class="relative group cursor-grab active:cursor-grabbing flex-shrink-0">
                                                     <NuxtImg
                                                         :src="item"
                                                         :class="{
-                                                            'h-16 w-16': aspectRatio === 'square',
-                                                            'aspect-[3/4] h-20 w-15': aspectRatio === 'poster',
-                                                            'aspect-video h-12 w-20': aspectRatio === 'widescreen'
+                                                            'h-20 w-20 sm:h-22 sm:w-22': aspectRatio === 'square',
+                                                            'aspect-[3/4] h-24 w-[72px] sm:h-26 sm:w-[78px]': aspectRatio === 'poster',
+                                                            'aspect-video h-14 w-24 sm:h-16 sm:w-28': aspectRatio === 'widescreen'
                                                         }"
                                                         class="rounded-lg object-cover border border-zinc-700/80 shadow-sm transition-transform group-hover:scale-105"
                                                         quality="75"
@@ -393,9 +393,9 @@ const getItemKey = (item: any) => item;
                                         <NuxtImg
                                             :src="item"
                                             :class="{
-                                                'h-16 w-16': aspectRatio === 'square',
-                                                'aspect-[3/4] h-20 w-15': aspectRatio === 'poster',
-                                                'aspect-video h-12 w-20': aspectRatio === 'widescreen'
+                                                'h-20 w-20 sm:h-22 sm:w-22': aspectRatio === 'square',
+                                                'aspect-[3/4] h-24 w-[72px] sm:h-26 sm:w-[78px]': aspectRatio === 'poster',
+                                                'aspect-video h-14 w-24 sm:h-16 sm:w-28': aspectRatio === 'widescreen'
                                             }"
                                             class="rounded-lg object-cover border border-zinc-700/80 shadow-sm transition-transform group-hover:scale-105"
                                             quality="75"
@@ -431,7 +431,7 @@ const getItemKey = (item: any) => item;
                                 <UTooltip :text="!isAuthenticated ? 'Faça login para salvar um ranking' : ''">
                                     <UButton
                                         @click="saveRanking"
-                                        label="Salvar Ranking"
+                                        label="Salvar"
                                         variant="solid"
                                         size="md"
                                         color="primary"
