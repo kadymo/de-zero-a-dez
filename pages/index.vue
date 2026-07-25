@@ -196,7 +196,7 @@ const handlePageChange = (newPage: number) => {
 
                 <!-- Create Template Modal -->
                 <UModal v-model="modal" :ui="{ width: 'sm:max-w-xl', rounded: 'rounded-2xl' }">
-                    <TemplateForm method="POST" />
+                    <TemplateForm method="POST" @close="modal = false" />
                 </UModal>
             </main>
         </div>

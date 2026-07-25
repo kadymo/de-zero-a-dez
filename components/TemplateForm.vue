@@ -20,7 +20,14 @@ const templateCover = ref<File | null>(null);
 const templateItems = ref<FileList | null>(null);
 const existingItems = ref<string[]>([]);
 
-const { modal, toggleModal } = inject<Modal>("modal") || { modal: ref(false), toggleModal: () => {} };
+const { modal } = inject<Modal>("modal") || { modal: ref(false) };
+
+const handleClose = () => {
+    emit("close");
+    if (modal && modal.value) {
+        modal.value = false;
+    }
+};
 
 const isUpdate = computed(() => props.method === "PUT");
 const targetTemplateId = computed(() => props.template?.id || props.templateId || (route.params.id as string));
@@ -103,8 +110,7 @@ const deleteTemplate = async () => {
 
     isDeleting.value = false;
     refreshNuxtData();
-    emit("close");
-    toggleModal();
+    handleClose();
     if (route.path.includes("/profile/template/")) {
         router.push("/profile");
     }
@@ -180,8 +186,7 @@ const createTemplate = async () => {
             color: "red"
         });
 
-        toggleModal();
-        emit("close");
+        handleClose();
         return;
     }
 
@@ -192,8 +197,7 @@ const createTemplate = async () => {
     });
 
     refreshNuxtData();
-    emit("close");
-    toggleModal();
+    handleClose();
 };
 
 const updateTemplate = async () => {
@@ -291,8 +295,7 @@ const updateTemplate = async () => {
     });
 
     refreshNuxtData();
-    emit("close");
-    toggleModal();
+    handleClose();
     if (route.path.includes("/profile/template/")) {
         router.back();
     }
@@ -328,7 +331,7 @@ const handleSubmit = async () => {
                     variant="ghost"
                     icon="i-heroicons-x-mark-20-solid"
                     class="rounded-xl hover:bg-zinc-800"
-                    @click="emit('close'); toggleModal();"
+                    @click="handleClose"
                 />
             </div>
         </template>
