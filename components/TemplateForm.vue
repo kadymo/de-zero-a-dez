@@ -18,6 +18,7 @@ const templateDescription = ref("");
 const templateVisibility = ref(false);
 const templateCover = ref<File | null>(null);
 const templateItems = ref<FileList | null>(null);
+const existingItems = ref<string[]>([]);
 
 const { modal, toggleModal } = inject<Modal>("modal") || { modal: ref(false), toggleModal: () => {} };
 
@@ -29,6 +30,7 @@ if (isUpdate.value) {
         templateName.value = props.template.name || "";
         templateDescription.value = props.template.description || "";
         templateVisibility.value = !!props.template.isPublic;
+        existingItems.value = [...(props.template.items || [])];
     } else if (targetTemplateId.value) {
         const { data: templateData } = await useFetch(`/api/templates/${targetTemplateId.value}`);
 
@@ -36,6 +38,7 @@ if (isUpdate.value) {
             templateName.value = templateData.value.name;
             templateDescription.value = templateData.value.description;
             templateVisibility.value = !!templateData.value.isPublic;
+            existingItems.value = [...(templateData.value.items || [])];
         }
     }
 }
@@ -45,8 +48,20 @@ watch(() => props.template, (newVal) => {
         templateName.value = newVal.name || "";
         templateDescription.value = newVal.description || "";
         templateVisibility.value = !!newVal.isPublic;
+        existingItems.value = [...(newVal.items || [])];
     }
 }, { immediate: true });
+
+const removeExistingItem = (index: number) => {
+    existingItems.value.splice(index, 1);
+    toast.add({
+        id: "item_removed",
+        title: "Foto removida.",
+        description: "Clique em 'Salvar Alterações' para confirmar.",
+        color: "yellow",
+        timeout: 3000
+    });
+};
 
 const handleFileSelected = (e: InputEvent) => {
     const files = (e.target as HTMLInputElement).files!;
@@ -183,6 +198,18 @@ const createTemplate = async () => {
 
 const updateTemplate = async () => {
     if (!targetTemplateId.value) return;
+
+    const totalItemsCount = existingItems.value.length + (templateItems.value?.length || 0);
+    if (totalItemsCount < 10) {
+        toast.add({
+            id: "error",
+            title: "O template precisa de no mínimo 10 itens.",
+            description: `O template atualmente possui ${totalItemsCount} foto(s). Adicione mais fotos.`,
+            color: "red"
+        });
+        return;
+    }
+
     const formData = new FormData();
     formData.append("upload_preset", "ml_default");
     formData.append("folder", "De Zero a Dez");
@@ -241,7 +268,8 @@ const updateTemplate = async () => {
             description: templateDescription.value,
             isPublic: templateVisibility.value ? 1 : 0,
             coverUrl,
-            filesUrls
+            filesUrls,
+            items: existingItems.value
         }
     });
 
@@ -352,6 +380,38 @@ const handleSubmit = async () => {
                 />
             </UFormGroup>
 
+            <!-- Gallery of Existing Items (with Delete Option) -->
+            <div v-if="isUpdate" class="space-y-2 pt-1 pb-1">
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-bold text-zinc-200">
+                        Itens Atuais do Template ({{ existingItems.length }})
+                    </label>
+                    <span class="text-[11px] text-zinc-400">Passe o mouse sobre a imagem para remover</span>
+                </div>
+
+                <div v-if="existingItems.length" class="grid grid-cols-4 sm:grid-cols-5 gap-2 p-2 rounded-xl bg-zinc-950 border border-zinc-800 max-h-48 overflow-y-auto">
+                    <div
+                        v-for="(itemUrl, index) in existingItems"
+                        :key="itemUrl + index"
+                        class="group relative aspect-square rounded-lg overflow-hidden border border-zinc-800/80 bg-zinc-900"
+                    >
+                        <NuxtImg :src="itemUrl" class="w-full h-full object-cover" quality="70" loading="lazy" />
+                        <button
+                            type="button"
+                            @click="removeExistingItem(index)"
+                            class="absolute inset-0 bg-red-950/85 text-red-200 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-1 transition-all duration-200 text-xs font-bold"
+                            title="Remover este item"
+                        >
+                            <UIcon name="i-heroicons-trash-20-solid" class="w-5 h-5 text-red-400" />
+                            <span>Remover</span>
+                        </button>
+                    </div>
+                </div>
+                <div v-else class="p-3 rounded-xl bg-zinc-950/80 border border-dashed border-red-500/40 text-center text-xs text-red-400">
+                    Nenhum item restante. Adicione novas fotos abaixo.
+                </div>
+            </div>
+
             <UFormGroup
                 :label="isUpdate ? 'Adicionar novas imagens de itens' : 'Imagens dos Itens (no mínimo 10 fotos)'"
                 required
@@ -385,8 +445,8 @@ const handleSubmit = async () => {
                 </UButton>
 
                 <UButton
-                    v-if="isUpdate"
-                    :to="`/ranking/${route.params.id}`"
+                    v-if="isUpdate && targetTemplateId"
+                    :to="`/ranking/${targetTemplateId}`"
                     type="button"
                     size="md"
                     color="gray"
@@ -410,5 +470,6 @@ const handleSubmit = async () => {
         </form>
     </UCard>
 </template>
+
 
 
