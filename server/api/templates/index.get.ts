@@ -1,19 +1,49 @@
 import { prisma } from "@/server/lib/prisma";
 
 export default defineEventHandler(async (event) => {
-    const { search } = getQuery(event);
+    const query = getQuery(event);
+    const search = (query.search as string) || "";
+    const page = Math.max(1, parseInt((query.page as string) || "1", 10));
+    const limit = Math.max(1, parseInt((query.limit as string) || "15", 10));
+    const skip = (page - 1) * limit;
 
-    const templates = await prisma.template.findMany({
-        where: {
-            name: {
-                contains: search as string,
-                mode: "insensitive"
-            },
-
-            isPublic: true
+    const where = {
+        name: {
+            contains: search,
+            mode: "insensitive" as const
         },
-        orderBy: { createdAt: "asc" }
-    });
+        isPublic: true
+    };
 
-    return templates;
+    const [templates, total] = await Promise.all([
+        prisma.template.findMany({
+            where,
+            include: {
+                user: {
+                    select: {
+                        name: true,
+                        image: true
+                    }
+                },
+                _count: {
+                    select: {
+                        rankings: true
+                    }
+                }
+            },
+            skip,
+            take: limit,
+            orderBy: { createdAt: "desc" }
+        }),
+        prisma.template.count({ where })
+    ]);
+
+    return {
+        templates,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+    };
 });
+

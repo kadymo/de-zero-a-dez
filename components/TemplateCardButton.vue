@@ -7,7 +7,6 @@ const { action, templateId } = defineProps<{
 const toast = useToast();
 
 const modal = ref(false);
-
 const isDeleting = ref(false);
 
 const deleteRanking = async () => {
@@ -30,9 +29,10 @@ const deleteRanking = async () => {
     }
 
     isDeleting.value = false;
+    modal.value = false;
     toast.add({
         id: "success",
-        title: "Template excluído com sucesso!",
+        title: "Ranking excluído com sucesso!",
         color: "green"
     });
 };
@@ -40,40 +40,54 @@ const deleteRanking = async () => {
 const handleClick = (e: Event) => {
     if (action === "delete") {
         e.preventDefault();
+        e.stopPropagation();
         modal.value = true;
     }
 };
 </script>
 
 <template>
-    <UButton
-        @click="handleClick"
-        :to="action === 'edit' ? `/profile/template/${templateId}` : null"
-        :icon="action === 'edit' ? 'i-heroicons-pencil' : 'i-heroicons-trash'"
-        variant="solid"
-        size="md"
-        color="white"
-        class="absolute right-0 top-0 rounded-none rounded-bl-xl"
-    />
+    <div>
+        <UButton
+            @click="handleClick"
+            :to="action === 'edit' ? `/profile/template/${templateId}` : undefined"
+            :icon="action === 'edit' ? 'i-heroicons-pencil-square-20-solid' : 'i-heroicons-trash-20-solid'"
+            variant="ghost"
+            size="sm"
+            :color="action === 'delete' ? 'red' : 'white'"
+            class="absolute right-3 top-3 z-20 rounded-xl backdrop-blur-md bg-zinc-900/80 border border-zinc-700/60 hover:bg-zinc-800 hover:scale-105 transition-all duration-200 shadow-lg"
+        />
 
-    <UModal v-model="modal">
-        <UCard>
-            <template #header>
-                <p>Tem certeza que deseja excluir este ranking?</p>
-            </template>
+        <UModal v-model="modal">
+            <UCard class="bg-zinc-900 border-zinc-800">
+                <template #header>
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20">
+                            <UIcon name="i-heroicons-exclamation-triangle-20-solid" class="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-zinc-100">Excluir ranking</h3>
+                            <p class="text-xs text-zinc-400">Esta ação não pode ser desfeita.</p>
+                        </div>
+                    </div>
+                </template>
 
-            <div class="flex gap-2">
-                <UButton @click="modal = false" label="Voltar" size="lg" />
-                <UButton
-                    @click="deleteRanking"
-                    :loading="isDeleting"
-                    label="Excluir"
-                    size="lg"
-                    color="red"
-                    class="flex-1"
-                    block
-                />
-            </div>
-        </UCard>
-    </UModal>
+                <p class="text-zinc-300 text-sm mb-4">
+                    Tem certeza que deseja excluir este ranking da sua lista de salvos?
+                </p>
+
+                <div class="flex gap-3 justify-end">
+                    <UButton @click="modal = false" label="Cancelar" variant="soft" color="gray" size="md" />
+                    <UButton
+                        @click="deleteRanking"
+                        :loading="isDeleting"
+                        label="Excluir Ranking"
+                        size="md"
+                        color="red"
+                    />
+                </div>
+            </UCard>
+        </UModal>
+    </div>
 </template>
+
