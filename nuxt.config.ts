@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
     app: {
         head: {
-            htmlAttrs: { lang: "pt-BR" },
+            htmlAttrs: { lang: "pt-BR", class: "dark" },
             title: "De Zero a Dez",
             meta: [
                 {
