@@ -15,6 +15,8 @@ defineProps<{
     templates: ExtendedTemplate[];
     action?: "edit" | "delete";
 }>();
+
+const emit = defineEmits(["edit"]);
 </script>
 
 <template>
@@ -23,7 +25,7 @@ defineProps<{
             <div
                 class="group relative flex flex-col overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800/80 hover:border-yellow-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-yellow-500/5 hover:-translate-y-0.5"
             >
-                <TemplateCardButton v-if="action" :action="action" :templateId="template.id" />
+                <TemplateCardButton v-if="action === 'delete'" :action="action" :templateId="template.id" />
 
                 <!-- Compact Image cover container -->
                 <NuxtLink :to="`/ranking/${template.id}`" class="relative h-44 w-full overflow-hidden bg-zinc-950 block">
@@ -82,13 +84,12 @@ defineProps<{
                         <div class="flex items-center gap-2">
                             <UButton
                                 v-if="action === 'edit'"
-                                :to="`/profile/template/${template.id}`"
+                                @click.prevent.stop="emit('edit', template)"
                                 label="Editar"
                                 variant="ghost"
-                                color="gray"
                                 size="xs"
                                 icon="i-heroicons-pencil-square-20-solid"
-                                class="rounded-lg text-zinc-400 hover:text-zinc-100"
+                                class="rounded-lg text-zinc-300 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/60 font-semibold"
                             />
                             <NuxtLink
                                 :to="`/ranking/${template.id}`"

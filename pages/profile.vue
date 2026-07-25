@@ -40,6 +40,14 @@ if (rankingsError.value) {
 const modal = ref(false);
 const toggleModal = () => { modal.value = !modal.value; };
 provide("modal", { modal, toggleModal });
+
+const editModal = ref(false);
+const editingTemplate = ref<any>(null);
+
+const handleEditTemplate = (template: any) => {
+    editingTemplate.value = template;
+    editModal.value = true;
+};
 </script>
 
 <template>
@@ -153,6 +161,7 @@ provide("modal", { modal, toggleModal });
                                         v-if="templates?.length"
                                         :templates="templates"
                                         action="edit"
+                                        @edit="handleEditTemplate"
                                     />
                                     <div
                                         v-else
@@ -205,8 +214,16 @@ provide("modal", { modal, toggleModal });
 
                 <!-- Create Template Modal -->
                 <UModal v-model="modal" :ui="{ width: 'sm:max-w-xl', rounded: 'rounded-2xl' }">
-                    <TemplateForm method="POST" />
+                    <TemplateForm method="POST" @close="modal = false" />
                 </UModal>
+
+                <!-- Edit Template Modal -->
+                <UModal v-model="editModal" :ui="{ width: 'sm:max-w-xl', rounded: 'rounded-2xl' }">
+                    <TemplateForm v-if="editingTemplate" method="PUT" :template="editingTemplate" @close="editModal = false" />
+                </UModal>
+
+                <!-- Child route placeholder for direct URL access -->
+                <NuxtPage />
             </main>
         </div>
     </div>

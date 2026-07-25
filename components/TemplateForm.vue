@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import type { Modal, Upload } from "@/types";
 
-const { method } = defineProps<{
+const props = defineProps<{
     method: "POST" | "PUT";
+    template?: any;
+    templateId?: string;
 }>();
+
+const emit = defineEmits(["close"]);
 
 const router = useRouter();
 const route = useRoute();
@@ -17,16 +21,32 @@ const templateItems = ref<FileList | null>(null);
 
 const { modal, toggleModal } = inject<Modal>("modal") || { modal: ref(false), toggleModal: () => {} };
 
-const isUpdate = computed(() => method === "PUT");
-if (isUpdate.value) {
-    const { data: template } = await useFetch(`/api/templates/${route.params.id}`);
+const isUpdate = computed(() => props.method === "PUT");
+const targetTemplateId = computed(() => props.template?.id || props.templateId || (route.params.id as string));
 
-    if (template.value) {
-        templateName.value = template.value.name;
-        templateDescription.value = template.value.description;
-        templateVisibility.value = template.value.isPublic;
+if (isUpdate.value) {
+    if (props.template) {
+        templateName.value = props.template.name || "";
+        templateDescription.value = props.template.description || "";
+        templateVisibility.value = !!props.template.isPublic;
+    } else if (targetTemplateId.value) {
+        const { data: templateData } = await useFetch(`/api/templates/${targetTemplateId.value}`);
+
+        if (templateData.value) {
+            templateName.value = templateData.value.name;
+            templateDescription.value = templateData.value.description;
+            templateVisibility.value = !!templateData.value.isPublic;
+        }
     }
 }
+
+watch(() => props.template, (newVal) => {
+    if (newVal) {
+        templateName.value = newVal.name || "";
+        templateDescription.value = newVal.description || "";
+        templateVisibility.value = !!newVal.isPublic;
+    }
+}, { immediate: true });
 
 const handleFileSelected = (e: InputEvent) => {
     const files = (e.target as HTMLInputElement).files!;
@@ -42,9 +62,10 @@ const isSaving = ref(false);
 const isDeleting = ref(false);
 
 const deleteTemplate = async () => {
+    if (!targetTemplateId.value) return;
     isDeleting.value = true;
 
-    const { error } = await useFetch(`/api/templates/${route.params.id}`, {
+    const { error } = await useFetch(`/api/templates/${targetTemplateId.value}`, {
         method: "DELETE"
     });
 
@@ -66,7 +87,12 @@ const deleteTemplate = async () => {
     });
 
     isDeleting.value = false;
-    router.push("/profile");
+    refreshNuxtData();
+    emit("close");
+    toggleModal();
+    if (route.path.includes("/profile/template/")) {
+        router.push("/profile");
+    }
 };
 
 const createTemplate = async () => {
@@ -140,6 +166,7 @@ const createTemplate = async () => {
         });
 
         toggleModal();
+        emit("close");
         return;
     }
 
@@ -149,10 +176,13 @@ const createTemplate = async () => {
         color: "green"
     });
 
+    refreshNuxtData();
+    emit("close");
     toggleModal();
 };
 
 const updateTemplate = async () => {
+    if (!targetTemplateId.value) return;
     const formData = new FormData();
     formData.append("upload_preset", "ml_default");
     formData.append("folder", "De Zero a Dez");
@@ -204,7 +234,7 @@ const updateTemplate = async () => {
         }
     }
 
-    const { error } = await useFetch(`/api/templates/${route.params.id}`, {
+    const { error } = await useFetch(`/api/templates/${targetTemplateId.value}`, {
         method: "PUT",
         body: {
             name: templateName.value,
@@ -232,13 +262,18 @@ const updateTemplate = async () => {
         color: "green"
     });
 
-    router.back();
+    refreshNuxtData();
+    emit("close");
+    toggleModal();
+    if (route.path.includes("/profile/template/")) {
+        router.back();
+    }
 };
 
 const handleSubmit = async () => {
     isSaving.value = true;
-    if (method === "POST") await createTemplate();
-    else if (method === "PUT") await updateTemplate();
+    if (props.method === "POST") await createTemplate();
+    else if (props.method === "PUT") await updateTemplate();
     isSaving.value = false;
 };
 </script>
@@ -246,18 +281,27 @@ const handleSubmit = async () => {
 <template>
     <UCard class="bg-zinc-900 border-zinc-800 shadow-2xl">
         <template #header>
-            <div class="flex items-center gap-3">
-                <div class="p-2.5 rounded-2xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                    <UIcon name="i-heroicons-pencil-square-20-solid" class="w-6 h-6" />
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 rounded-2xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                        <UIcon name="i-heroicons-pencil-square-20-solid" class="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-zinc-100">
+                            {{ isUpdate ? "Atualizar Template" : "Novo Template" }}
+                        </h2>
+                        <p class="text-xs text-zinc-400">
+                            {{ isUpdate ? "Altere as informações do seu template" : "Crie um novo tema de 0 a 10 para a comunidade" }}
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-xl font-bold text-zinc-100">
-                        {{ isUpdate ? "Atualizar Template" : "Novo Template" }}
-                    </h2>
-                    <p class="text-xs text-zinc-400">
-                        {{ isUpdate ? "Altere as informações do seu template" : "Crie um novo tema de 0 a 10 para a comunidade" }}
-                    </p>
-                </div>
+                <UButton
+                    color="gray"
+                    variant="ghost"
+                    icon="i-heroicons-x-mark-20-solid"
+                    class="rounded-xl hover:bg-zinc-800"
+                    @click="emit('close'); toggleModal();"
+                />
             </div>
         </template>
 
