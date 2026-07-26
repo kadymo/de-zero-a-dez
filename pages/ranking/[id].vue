@@ -244,11 +244,11 @@ const getScoreColorClass = (score: number) => {
         case 3:
             return "bg-orange-500 text-zinc-950 font-black";
         case 2:
-            return "bg-orange-600 text-white font-black";
+            return "bg-orange-500 text-zinc-950 font-black";
         case 1:
-            return "bg-rose-600 text-white font-black";
+            return "bg-rose-500 text-zinc-950 font-black";
         case 0:
-            return "bg-red-700 text-white font-black";
+            return "bg-red-500 text-zinc-950 font-black";
         default:
             return "bg-zinc-800 text-zinc-200 font-bold";
     }
