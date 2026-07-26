@@ -226,12 +226,32 @@ const resetRanking = () => {
 };
 
 const getScoreColorClass = (score: number) => {
-    if (score === 10) return "bg-amber-500 text-zinc-950";
-    if (score >= 8) return "bg-yellow-500 text-zinc-950";
-    if (score >= 6) return "bg-emerald-500 text-zinc-950";
-    if (score >= 4) return "bg-sky-500 text-zinc-950";
-    if (score >= 2) return "bg-purple-500 text-zinc-950";
-    return "bg-rose-600 text-white";
+    switch (score) {
+        case 10:
+            return "bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-zinc-950 font-black shadow-md shadow-yellow-500/20 ring-1 ring-yellow-300/50";
+        case 9:
+            return "bg-emerald-400 text-zinc-950 font-black";
+        case 8:
+            return "bg-emerald-500 text-zinc-950 font-black";
+        case 7:
+            return "bg-lime-400 text-zinc-950 font-black";
+        case 6:
+            return "bg-lime-500 text-zinc-950 font-black";
+        case 5:
+            return "bg-yellow-400 text-zinc-950 font-black shadow-sm shadow-yellow-500/10";
+        case 4:
+            return "bg-amber-400 text-zinc-950 font-black shadow-sm shadow-amber-500/10";
+        case 3:
+            return "bg-orange-500 text-zinc-950 font-black";
+        case 2:
+            return "bg-orange-600 text-white font-black";
+        case 1:
+            return "bg-rose-600 text-white font-black";
+        case 0:
+            return "bg-red-700 text-white font-black";
+        default:
+            return "bg-zinc-800 text-zinc-200 font-bold";
+    }
 };
 
 const getItemKey = (item: any) => item;
