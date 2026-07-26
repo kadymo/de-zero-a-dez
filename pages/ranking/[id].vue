@@ -281,7 +281,7 @@ const getItemKey = (item: any) => item;
                             />
                             <div>
                                 <span class="text-xs font-semibold uppercase tracking-wider text-yellow-500 flex items-center gap-1">
-                                    <UIcon name="i-heroicons-chart-bar-20-solid" /> Tema De Zero a Dez
+                                    <UIcon name="i-heroicons-chart-bar-20-solid" /> Tema
                                 </span>
                                 <h1 class="text-xl sm:text-2xl font-extrabold text-zinc-100 leading-tight">
                                     {{ template.name }}
@@ -528,15 +528,14 @@ const getItemKey = (item: any) => item;
                                     <UButton
                                         @click="copyImageToClipboard"
                                         label="Copiar Imagem"
-                                        variant="soft"
-                                        color="gray"
+                                        variant="ghost"
                                         size="md"
                                         icon="i-heroicons-document-duplicate-20-solid"
-                                        class="w-full sm:w-auto rounded-xl"
+                                        class="w-full sm:w-auto rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/80 font-medium"
                                     />
                                     <UButton
                                         @click="downloadImage"
-                                        label="Baixar Imagem (PNG HD)"
+                                        label="Baixar"
                                         variant="solid"
                                         color="primary"
                                         size="md"
@@ -558,7 +557,7 @@ const getItemKey = (item: any) => item;
                             <div class="border-b border-zinc-800/80 pb-6">
                                 <div>
                                     <span class="text-xs font-bold uppercase tracking-wider text-yellow-400 block">
-                                        RANKING DE ZERO A DEZ
+                                        TEMA
                                     </span>
                                     <h2 class="text-3xl font-extrabold text-white leading-tight">
                                         {{ template?.name }}
