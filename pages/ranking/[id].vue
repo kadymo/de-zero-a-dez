@@ -64,6 +64,26 @@ const { data: userRankings } = await useFetch("/api/user/rankings");
 const savedRanking = userRankings.value?.find((r: any) => r.templateId === route.params.id);
 if (savedRanking) columns.value = savedRanking.columns;
 
+const validTemplateItems = computed(() => new Set([
+    ...(template.value?.items || []),
+    ...storedUploads.value,
+    "/transparent.png"
+]));
+
+const cleanColumns = (colsList: any[]) => {
+    const validSet = validTemplateItems.value;
+    return colsList.map((col: any) => ({
+        ...col,
+        items: (col.items || []).filter((itemUrl: string) => validSet.has(itemUrl))
+    }));
+};
+
+watch([template, storedUploads], () => {
+    if (columns.value) {
+        columns.value = cleanColumns(columns.value);
+    }
+}, { immediate: true });
+
 const modal = ref(false);
 const shareModal = ref(false);
 const items = ref<FileList | null>(null);

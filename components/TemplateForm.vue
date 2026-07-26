@@ -101,11 +101,24 @@ const deleteTemplate = async () => {
     if (!targetTemplateId.value) return;
     isDeleting.value = true;
 
-    const { error } = await useFetch(`/api/templates/${targetTemplateId.value}`, {
-        method: "DELETE"
-    });
+    try {
+        await $fetch(`/api/templates/${targetTemplateId.value}`, {
+            method: "DELETE"
+        });
 
-    if (error.value) {
+        toast.add({
+            id: "success",
+            title: "Template excluído com sucesso!",
+            color: "green"
+        });
+
+        isDeleting.value = false;
+        refreshNuxtData();
+        handleClose();
+        if (route.path.includes("/profile/template/")) {
+            router.push("/profile");
+        }
+    } catch (err) {
         toast.add({
             id: "error",
             title: "Não foi possível excluir o template.",
@@ -113,20 +126,6 @@ const deleteTemplate = async () => {
             color: "red"
         });
         isDeleting.value = false;
-        return;
-    }
-
-    toast.add({
-        id: "success",
-        title: "Template excluído com sucesso!",
-        color: "green"
-    });
-
-    isDeleting.value = false;
-    refreshNuxtData();
-    handleClose();
-    if (route.path.includes("/profile/template/")) {
-        router.push("/profile");
     }
 };
 
@@ -136,6 +135,15 @@ const createTemplate = async () => {
             id: "error",
             title: "Selecione pelo menos 10 itens.",
             description: `Você selecionou ${newItemsList.value.length} item(ns).`,
+            color: "red"
+        });
+        return;
+    }
+
+    if (!templateCover.value) {
+        toast.add({
+            id: "error",
+            title: "Selecione uma imagem de capa.",
             color: "red"
         });
         return;
@@ -154,70 +162,67 @@ const createTemplate = async () => {
         return;
     }
 
-    const formData = new FormData();
-    formData.append("upload_preset", "ml_default");
-    formData.append("folder", "De Zero a Dez");
+    try {
+        const formData = new FormData();
+        formData.append("upload_preset", "ml_default");
+        formData.append("folder", "De Zero a Dez");
+        formData.append("file", templateCover.value);
 
-    formData.append("file", templateCover.value!);
-    const { data: coverUpload } = await useFetch<Upload>(
-        "https://api.cloudinary.com/v1_1/dcxlgeobi/image/upload",
-        {
-            method: "POST",
-            body: formData
-        }
-    );
-
-    const filesUrls = [];
-    for (let i = 0; i < newItemsList.value.length; i++) {
-        const itemFormData = new FormData();
-        itemFormData.append("upload_preset", "ml_default");
-        itemFormData.append("folder", "De Zero a Dez");
-        itemFormData.append("file", newItemsList.value[i].file);
-
-        const { data: fileUpload } = await useFetch<Upload>(
+        const coverUpload = await $fetch<Upload>(
             "https://api.cloudinary.com/v1_1/dcxlgeobi/image/upload",
             {
                 method: "POST",
-                body: itemFormData
+                body: formData
             }
         );
 
-        if (fileUpload.value?.secure_url) {
-            filesUrls.push(fileUpload.value.secure_url);
-        }
-    }
+        const filesUrls: string[] = [];
+        for (let i = 0; i < newItemsList.value.length; i++) {
+            const itemFormData = new FormData();
+            itemFormData.append("upload_preset", "ml_default");
+            itemFormData.append("folder", "De Zero a Dez");
+            itemFormData.append("file", newItemsList.value[i].file);
 
-    const { error } = await useFetch(`/api/templates`, {
-        method: "POST",
-        body: {
-            name: templateName.value,
-            description: templateDescription.value,
-            isPublic: templateVisibility.value ? 1 : 0,
-            coverUrl: coverUpload.value?.secure_url,
-            filesUrls
-        }
-    });
+            const fileUpload = await $fetch<Upload>(
+                "https://api.cloudinary.com/v1_1/dcxlgeobi/image/upload",
+                {
+                    method: "POST",
+                    body: itemFormData
+                }
+            );
 
-    if (error.value) {
+            if (fileUpload?.secure_url) {
+                filesUrls.push(fileUpload.secure_url);
+            }
+        }
+
+        await $fetch(`/api/templates`, {
+            method: "POST",
+            body: {
+                name: templateName.value,
+                description: templateDescription.value,
+                isPublic: templateVisibility.value ? 1 : 0,
+                coverUrl: coverUpload?.secure_url,
+                filesUrls
+            }
+        });
+
+        toast.add({
+            id: "success",
+            title: "Template criado com sucesso!",
+            color: "green"
+        });
+
+        refreshNuxtData();
+        handleClose();
+    } catch (err) {
         toast.add({
             id: "error",
             title: "Não foi possível criar o template.",
             description: "Tente novamente mais tarde.",
             color: "red"
         });
-
-        handleClose();
-        return;
     }
-
-    toast.add({
-        id: "success",
-        title: "Template criado com sucesso!",
-        color: "green"
-    });
-
-    refreshNuxtData();
-    handleClose();
 };
 
 const updateTemplate = async () => {
@@ -234,100 +239,102 @@ const updateTemplate = async () => {
         return;
     }
 
-    let coverUrl;
-    if (templateCover.value) {
-        const formData = new FormData();
-        formData.append("upload_preset", "ml_default");
-        formData.append("folder", "De Zero a Dez");
-        formData.append("file", templateCover.value);
+    try {
+        let coverUrl;
+        if (templateCover.value) {
+            const formData = new FormData();
+            formData.append("upload_preset", "ml_default");
+            formData.append("folder", "De Zero a Dez");
+            formData.append("file", templateCover.value);
 
-        const { data: coverUpload } = await useFetch<Upload>(
-            "https://api.cloudinary.com/v1_1/dcxlgeobi/image/upload",
-            {
-                method: "POST",
-                body: formData
-            }
-        );
-
-        coverUrl = coverUpload.value?.secure_url;
-    }
-
-    let filesUrls: string[] = [];
-    if (newItemsList.value.length) {
-        const hasLargeItem = newItemsList.value.some((i) => i.file.size > 1000000);
-
-        if (hasLargeItem) {
-            toast.add({
-                id: "error",
-                title: "As imagens devem ter um tamanho máximo de 1MB.",
-                description: "Você pode optar por usar um compressor de arquivos online.",
-                color: "red",
-                timeout: 8000
-            });
-            return;
-        }
-
-        for (let i = 0; i < newItemsList.value.length; i++) {
-            const itemFormData = new FormData();
-            itemFormData.append("upload_preset", "ml_default");
-            itemFormData.append("folder", "De Zero a Dez");
-            itemFormData.append("file", newItemsList.value[i].file);
-
-            const { data: fileUpload } = await useFetch<Upload>(
+            const coverUpload = await $fetch<Upload>(
                 "https://api.cloudinary.com/v1_1/dcxlgeobi/image/upload",
                 {
                     method: "POST",
-                    body: itemFormData
+                    body: formData
                 }
             );
 
-            if (fileUpload.value?.secure_url) {
-                filesUrls.push(fileUpload.value.secure_url);
+            coverUrl = coverUpload?.secure_url;
+        }
+
+        let filesUrls: string[] = [];
+        if (newItemsList.value.length) {
+            const hasLargeItem = newItemsList.value.some((i) => i.file.size > 1000000);
+
+            if (hasLargeItem) {
+                toast.add({
+                    id: "error",
+                    title: "As imagens devem ter um tamanho máximo de 1MB.",
+                    description: "Você pode optar por usar um compressor de arquivos online.",
+                    color: "red",
+                    timeout: 8000
+                });
+                return;
+            }
+
+            for (let i = 0; i < newItemsList.value.length; i++) {
+                const itemFormData = new FormData();
+                itemFormData.append("upload_preset", "ml_default");
+                itemFormData.append("folder", "De Zero a Dez");
+                itemFormData.append("file", newItemsList.value[i].file);
+
+                const fileUpload = await $fetch<Upload>(
+                    "https://api.cloudinary.com/v1_1/dcxlgeobi/image/upload",
+                    {
+                        method: "POST",
+                        body: itemFormData
+                    }
+                );
+
+                if (fileUpload?.secure_url) {
+                    filesUrls.push(fileUpload.secure_url);
+                }
             }
         }
-    }
 
-    const { error } = await useFetch(`/api/templates/${targetTemplateId.value}`, {
-        method: "PUT",
-        body: {
-            name: templateName.value,
-            description: templateDescription.value,
-            isPublic: templateVisibility.value ? 1 : 0,
-            coverUrl,
-            filesUrls,
-            items: existingItems.value
+        await $fetch(`/api/templates/${targetTemplateId.value}`, {
+            method: "PUT",
+            body: {
+                name: templateName.value,
+                description: templateDescription.value,
+                isPublic: templateVisibility.value ? 1 : 0,
+                coverUrl,
+                filesUrls,
+                items: existingItems.value
+            }
+        });
+
+        toast.add({
+            id: "success",
+            title: "Template atualizado com sucesso!",
+            color: "green"
+        });
+
+        refreshNuxtData();
+        handleClose();
+        if (route.path.includes("/profile/template/")) {
+            router.back();
         }
-    });
-
-    if (error.value) {
+    } catch (err) {
         toast.add({
             id: "error",
             title: "Não foi possível atualizar o template.",
             description: "Tente novamente mais tarde.",
             color: "red"
         });
-        isSaving.value = false;
-        return;
-    }
-
-    toast.add({
-        id: "success",
-        title: "Template atualizado com sucesso!",
-        color: "green"
-    });
-
-    refreshNuxtData();
-    handleClose();
-    if (route.path.includes("/profile/template/")) {
-        router.back();
     }
 };
 
 const handleSubmit = async () => {
+    if (isSaving.value) return;
     isSaving.value = true;
-    if (props.method === "POST") await createTemplate();
-    else if (props.method === "PUT") await updateTemplate();
-    isSaving.value = false;
+    try {
+        if (props.method === "POST") await createTemplate();
+        else if (props.method === "PUT") await updateTemplate();
+    } finally {
+        isSaving.value = false;
+    }
 };
 </script>
 
