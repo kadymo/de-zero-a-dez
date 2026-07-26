@@ -112,16 +112,18 @@ const deleteTemplate = async () => {
             color: "green"
         });
 
-        refreshNuxtData();
+        await refreshNuxtData();
         handleClose();
         if (route.path.includes("/profile/template/")) {
             router.push("/profile");
         }
-    } catch (err) {
+    } catch (err: any) {
+        console.error("Erro ao excluir template:", err);
+        const errMsg = err?.data?.statusMessage || err?.statusMessage || "Não foi possível excluir o template.";
         toast.add({
             id: "error",
-            title: "Não foi possível excluir o template.",
-            description: "Tente novamente mais tarde.",
+            title: "Erro ao excluir template",
+            description: errMsg,
             color: "red"
         });
     } finally {
