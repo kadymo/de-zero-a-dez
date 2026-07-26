@@ -98,7 +98,7 @@ const isSaving = ref(false);
 const isDeleting = ref(false);
 
 const deleteTemplate = async () => {
-    if (!targetTemplateId.value) return;
+    if (!targetTemplateId.value || isDeleting.value || isSaving.value) return;
     isDeleting.value = true;
 
     try {
@@ -112,7 +112,6 @@ const deleteTemplate = async () => {
             color: "green"
         });
 
-        isDeleting.value = false;
         refreshNuxtData();
         handleClose();
         if (route.path.includes("/profile/template/")) {
@@ -125,6 +124,7 @@ const deleteTemplate = async () => {
             description: "Tente novamente mais tarde.",
             color: "red"
         });
+    } finally {
         isDeleting.value = false;
     }
 };
@@ -327,7 +327,7 @@ const updateTemplate = async () => {
 };
 
 const handleSubmit = async () => {
-    if (isSaving.value) return;
+    if (isSaving.value || isDeleting.value) return;
     isSaving.value = true;
     try {
         if (props.method === "POST") await createTemplate();
@@ -504,7 +504,7 @@ const handleSubmit = async () => {
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-zinc-800/80">
                 <UButton
                     v-if="isUpdate"
-                    @click="deleteTemplate"
+                    @click.prevent.stop="deleteTemplate"
                     type="button"
                     size="md"
                     color="red"
