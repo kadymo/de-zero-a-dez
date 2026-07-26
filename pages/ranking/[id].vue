@@ -228,7 +228,7 @@ const resetRanking = () => {
 const getScoreColorClass = (score: number) => {
     switch (score) {
         case 10:
-            return "bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-zinc-950 font-black shadow-md shadow-yellow-500/20 ring-1 ring-yellow-300/50";
+            return "bg-sky-500 text-zinc-950 font-black shadow-md shadow-sky-500/20 ring-1 ring-sky-300/50";
         case 9:
             return "bg-emerald-400 text-zinc-950 font-black";
         case 8:
