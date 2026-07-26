@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import draggable from "vuedraggable";
 import type { Modal, Upload } from "@/types";
 
 const props = defineProps<{
@@ -17,8 +18,8 @@ const templateName = ref("");
 const templateDescription = ref("");
 const templateVisibility = ref(false);
 const templateCover = ref<File | null>(null);
-const templateItems = ref<FileList | null>(null);
 const existingItems = ref<string[]>([]);
+const newItemsList = ref<{ id: string; file: File; url: string }[]>([]);
 
 const { modal } = inject<Modal>("modal") || { modal: ref(false) };
 
@@ -70,13 +71,26 @@ const removeExistingItem = (index: number) => {
     });
 };
 
+const removeNewItem = (index: number) => {
+    URL.revokeObjectURL(newItemsList.value[index].url);
+    newItemsList.value.splice(index, 1);
+};
+
 const handleFileSelected = (e: InputEvent) => {
     const files = (e.target as HTMLInputElement).files!;
 
     if ((e.target as HTMLInputElement).name === "cover") {
         templateCover.value = files[0];
     } else {
-        templateItems.value = files;
+        const fileArr = Array.from(files);
+        newItemsList.value = [
+            ...newItemsList.value,
+            ...fileArr.map((file, i) => ({
+                id: `${file.name}-${Date.now()}-${i}-${Math.random()}`,
+                file,
+                url: URL.createObjectURL(file)
+            }))
+        ];
     }
 };
 
@@ -117,16 +131,17 @@ const deleteTemplate = async () => {
 };
 
 const createTemplate = async () => {
-    if (!templateItems.value || templateItems.value.length < 10) {
+    if (newItemsList.value.length < 10) {
         toast.add({
             id: "error",
             title: "Selecione pelo menos 10 itens.",
+            description: `Você selecionou ${newItemsList.value.length} item(ns).`,
             color: "red"
         });
         return;
     }
 
-    const hasLargeItem = Array.from(templateItems.value).some((i) => i.size > 1000000);
+    const hasLargeItem = newItemsList.value.some((item) => item.file.size > 1000000);
 
     if (hasLargeItem) {
         toast.add({
@@ -153,18 +168,23 @@ const createTemplate = async () => {
     );
 
     const filesUrls = [];
-    for (let i = 0; i < templateItems.value.length; i++) {
-        formData.append("file", templateItems.value[i]);
+    for (let i = 0; i < newItemsList.value.length; i++) {
+        const itemFormData = new FormData();
+        itemFormData.append("upload_preset", "ml_default");
+        itemFormData.append("folder", "De Zero a Dez");
+        itemFormData.append("file", newItemsList.value[i].file);
 
         const { data: fileUpload } = await useFetch<Upload>(
             "https://api.cloudinary.com/v1_1/dcxlgeobi/image/upload",
             {
                 method: "POST",
-                body: formData
+                body: itemFormData
             }
         );
 
-        filesUrls.push(fileUpload.value?.secure_url);
+        if (fileUpload.value?.secure_url) {
+            filesUrls.push(fileUpload.value.secure_url);
+        }
     }
 
     const { error } = await useFetch(`/api/templates`, {
@@ -203,7 +223,7 @@ const createTemplate = async () => {
 const updateTemplate = async () => {
     if (!targetTemplateId.value) return;
 
-    const totalItemsCount = existingItems.value.length + (templateItems.value?.length || 0);
+    const totalItemsCount = existingItems.value.length + newItemsList.value.length;
     if (totalItemsCount < 10) {
         toast.add({
             id: "error",
@@ -214,14 +234,11 @@ const updateTemplate = async () => {
         return;
     }
 
-    const formData = new FormData();
-    formData.append("upload_preset", "ml_default");
-    formData.append("folder", "De Zero a Dez");
-
     let coverUrl;
-    let filesUrls;
-
     if (templateCover.value) {
+        const formData = new FormData();
+        formData.append("upload_preset", "ml_default");
+        formData.append("folder", "De Zero a Dez");
         formData.append("file", templateCover.value);
 
         const { data: coverUpload } = await useFetch<Upload>(
@@ -235,8 +252,9 @@ const updateTemplate = async () => {
         coverUrl = coverUpload.value?.secure_url;
     }
 
-    if (templateItems.value) {
-        const hasLargeItem = Array.from(templateItems.value).some((i) => i.size > 1000000);
+    let filesUrls: string[] = [];
+    if (newItemsList.value.length) {
+        const hasLargeItem = newItemsList.value.some((i) => i.file.size > 1000000);
 
         if (hasLargeItem) {
             toast.add({
@@ -249,19 +267,23 @@ const updateTemplate = async () => {
             return;
         }
 
-        filesUrls = [];
-        for (let i = 0; i < templateItems.value.length; i++) {
-            formData.append("file", templateItems.value[i]);
+        for (let i = 0; i < newItemsList.value.length; i++) {
+            const itemFormData = new FormData();
+            itemFormData.append("upload_preset", "ml_default");
+            itemFormData.append("folder", "De Zero a Dez");
+            itemFormData.append("file", newItemsList.value[i].file);
 
             const { data: fileUpload } = await useFetch<Upload>(
                 "https://api.cloudinary.com/v1_1/dcxlgeobi/image/upload",
                 {
                     method: "POST",
-                    body: formData
+                    body: itemFormData
                 }
             );
 
-            filesUrls.push(fileUpload.value?.secure_url);
+            if (fileUpload.value?.secure_url) {
+                filesUrls.push(fileUpload.value.secure_url);
+            }
         }
     }
 
@@ -383,41 +405,81 @@ const handleSubmit = async () => {
                 />
             </UFormGroup>
 
-            <!-- Gallery of Existing Items (with Delete Option) -->
-            <div v-if="isUpdate" class="space-y-2 pt-1 pb-1">
+            <!-- Existing Items (Draggable for Reordering & Deletion) -->
+            <div v-if="isUpdate && existingItems.length" class="space-y-2 pt-1 pb-1">
                 <div class="flex items-center justify-between">
-                    <label class="block text-xs font-bold text-zinc-200">
-                        Itens Atuais do Template ({{ existingItems.length }})
+                    <label class="block text-xs font-bold text-zinc-200 flex items-center gap-1.5">
+                        <UIcon name="i-heroicons-bars-3-20-solid" class="text-yellow-500" />
+                        Itens Cadastrados ({{ existingItems.length }})
                     </label>
-                    <span class="text-[11px] text-zinc-400">Passe o mouse sobre a imagem para remover</span>
+                    <span class="text-[11px] text-zinc-400">Arraste para reorganizar a ordem</span>
                 </div>
 
-                <div v-if="existingItems.length" class="grid grid-cols-4 sm:grid-cols-5 gap-2 p-2 rounded-xl bg-zinc-950 border border-zinc-800 max-h-48 overflow-y-auto">
-                    <div
-                        v-for="(itemUrl, index) in existingItems"
-                        :key="itemUrl + index"
-                        class="group relative aspect-square rounded-lg overflow-hidden border border-zinc-800/80 bg-zinc-900"
-                    >
-                        <NuxtImg :src="itemUrl" class="w-full h-full object-cover" quality="70" loading="lazy" />
-                        <button
-                            type="button"
-                            @click="removeExistingItem(index)"
-                            class="absolute inset-0 bg-red-950/85 text-red-200 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-1 transition-all duration-200 text-xs font-bold"
-                            title="Remover este item"
-                        >
-                            <UIcon name="i-heroicons-trash-20-solid" class="w-5 h-5 text-red-400" />
-                            <span>Remover</span>
-                        </button>
-                    </div>
+                <draggable
+                    v-model="existingItems"
+                    item-key="url"
+                    :animation="150"
+                    tag="div"
+                    class="grid grid-cols-4 sm:grid-cols-5 gap-2 p-2 rounded-xl bg-zinc-950 border border-zinc-800 max-h-52 overflow-y-auto"
+                >
+                    <template #item="{ element: itemUrl, index }">
+                        <div class="group relative aspect-square rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900 cursor-grab active:cursor-grabbing shadow-sm transition-transform hover:scale-[1.02]">
+                            <NuxtImg :src="itemUrl" class="w-full h-full object-cover pointer-events-none" quality="70" loading="lazy" />
+                            <div class="absolute top-1 left-1 bg-zinc-950/85 text-yellow-400 rounded px-1.5 py-0.5 text-[10px] font-mono font-bold border border-zinc-800 pointer-events-none">
+                                #{{ index + 1 }}
+                            </div>
+                            <button
+                                type="button"
+                                @click.stop="removeExistingItem(index)"
+                                class="absolute top-1 right-1 bg-red-950/90 hover:bg-red-900 text-red-300 p-1 rounded-md transition-opacity border border-red-500/30 shadow-md"
+                                title="Remover este item"
+                            >
+                                <UIcon name="i-heroicons-trash-20-solid" class="w-3.5 h-3.5 text-red-400" />
+                            </button>
+                        </div>
+                    </template>
+                </draggable>
+            </div>
+
+            <!-- New Items Preview (Draggable for Reordering & Deletion) -->
+            <div v-if="newItemsList.length" class="space-y-2 pt-1 pb-1">
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-bold text-zinc-200 flex items-center gap-1.5">
+                        <UIcon name="i-heroicons-bars-3-20-solid" class="text-yellow-500" />
+                        Novas Imagens Selecionadas ({{ newItemsList.length }})
+                    </label>
+                    <span class="text-[11px] text-zinc-400">Arraste para reorganizar antes de salvar</span>
                 </div>
-                <div v-else class="p-3 rounded-xl bg-zinc-950/80 border border-dashed border-red-500/40 text-center text-xs text-red-400">
-                    Nenhum item restante. Adicione novas fotos abaixo.
-                </div>
+
+                <draggable
+                    v-model="newItemsList"
+                    item-key="id"
+                    :animation="150"
+                    tag="div"
+                    class="grid grid-cols-4 sm:grid-cols-5 gap-2 p-2 rounded-xl bg-zinc-950 border border-zinc-800 max-h-52 overflow-y-auto"
+                >
+                    <template #item="{ element: item, index }">
+                        <div class="group relative aspect-square rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900 cursor-grab active:cursor-grabbing shadow-sm transition-transform hover:scale-[1.02]">
+                            <img :src="item.url" class="w-full h-full object-cover pointer-events-none" />
+                            <div class="absolute top-1 left-1 bg-zinc-950/85 text-yellow-400 rounded px-1.5 py-0.5 text-[10px] font-mono font-bold border border-zinc-800 pointer-events-none">
+                                #{{ (isUpdate ? existingItems.length : 0) + index + 1 }}
+                            </div>
+                            <button
+                                type="button"
+                                @click.stop="removeNewItem(index)"
+                                class="absolute top-1 right-1 bg-red-950/90 hover:bg-red-900 text-red-300 p-1 rounded-md transition-opacity border border-red-500/30 shadow-md"
+                                title="Remover esta foto"
+                            >
+                                <UIcon name="i-heroicons-trash-20-solid" class="w-3.5 h-3.5 text-red-400" />
+                            </button>
+                        </div>
+                    </template>
+                </draggable>
             </div>
 
             <UFormGroup
                 :label="isUpdate ? 'Adicionar novas imagens de itens' : 'Imagens dos Itens (no mínimo 10 fotos)'"
-                required
+                :required="!isUpdate && !newItemsList.length"
             >
                 <UInput
                     @change="handleFileSelected"
@@ -427,7 +489,7 @@ const handleSubmit = async () => {
                     size="md"
                     color="gray"
                     multiple
-                    :required="!isUpdate"
+                    :required="!isUpdate && !newItemsList.length"
                 />
                 <p class="mt-1 text-xs text-zinc-500">Formato aceito: PNG, JPG (máximo 1MB por imagem).</p>
             </UFormGroup>
