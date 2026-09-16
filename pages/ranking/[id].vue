@@ -64,6 +64,26 @@ const { data: userRankings } = await useFetch("/api/user/rankings");
 const savedRanking = userRankings.value?.find((r: any) => r.templateId === route.params.id);
 if (savedRanking) columns.value = savedRanking.columns;
 
+const validTemplateItems = computed(() => new Set([
+    ...(template.value?.items || []),
+    ...storedUploads.value,
+    "/transparent.png"
+]));
+
+const cleanColumns = (colsList: any[]) => {
+    const validSet = validTemplateItems.value;
+    return colsList.map((col: any) => ({
+        ...col,
+        items: (col.items || []).filter((itemUrl: string) => validSet.has(itemUrl))
+    }));
+};
+
+watch([template, storedUploads], () => {
+    if (columns.value) {
+        columns.value = cleanColumns(columns.value);
+    }
+}, { immediate: true });
+
 const modal = ref(false);
 const shareModal = ref(false);
 const items = ref<FileList | null>(null);
@@ -226,12 +246,32 @@ const resetRanking = () => {
 };
 
 const getScoreColorClass = (score: number) => {
-    if (score === 10) return "bg-amber-500 text-zinc-950";
-    if (score >= 8) return "bg-yellow-500 text-zinc-950";
-    if (score >= 6) return "bg-emerald-500 text-zinc-950";
-    if (score >= 4) return "bg-sky-500 text-zinc-950";
-    if (score >= 2) return "bg-purple-500 text-zinc-950";
-    return "bg-rose-600 text-white";
+    switch (score) {
+        case 10:
+            return "bg-sky-500 text-zinc-950 font-black shadow-md shadow-sky-500/20 ring-1 ring-sky-300/50";
+        case 9:
+            return "bg-emerald-400 text-zinc-950 font-black";
+        case 8:
+            return "bg-emerald-500 text-zinc-950 font-black";
+        case 7:
+            return "bg-lime-400 text-zinc-950 font-black";
+        case 6:
+            return "bg-lime-500 text-zinc-950 font-black";
+        case 5:
+            return "bg-yellow-400 text-zinc-950 font-black shadow-sm shadow-yellow-500/10";
+        case 4:
+            return "bg-amber-400 text-zinc-950 font-black shadow-sm shadow-amber-500/10";
+        case 3:
+            return "bg-orange-500 text-zinc-950 font-black";
+        case 2:
+            return "bg-orange-500 text-zinc-950 font-black";
+        case 1:
+            return "bg-rose-500 text-zinc-950 font-black";
+        case 0:
+            return "bg-red-500 text-zinc-950 font-black";
+        default:
+            return "bg-zinc-800 text-zinc-200 font-bold";
+    }
 };
 
 const getItemKey = (item: any) => item;
@@ -261,7 +301,7 @@ const getItemKey = (item: any) => item;
                             />
                             <div>
                                 <span class="text-xs font-semibold uppercase tracking-wider text-yellow-500 flex items-center gap-1">
-                                    <UIcon name="i-heroicons-chart-bar-20-solid" /> Tema De Zero a Dez
+                                    <UIcon name="i-heroicons-chart-bar-20-solid" /> Tema
                                 </span>
                                 <h1 class="text-xl sm:text-2xl font-extrabold text-zinc-100 leading-tight">
                                     {{ template.name }}
@@ -294,7 +334,7 @@ const getItemKey = (item: any) => item;
                                 class="flex flex-row justify-between gap-2 sm:gap-3 overflow-x-auto min-h-[380px] pb-2"
                             >
                                 <template #item="{ element }">
-                                    <div class="flex flex-col flex-1 min-w-[76px] sm:min-w-[90px] items-center gap-2 rounded-xl bg-zinc-950 p-2 border border-zinc-800/80">
+                                    <div class="flex flex-col flex-1 min-w-[84px] sm:min-w-[102px] items-center gap-2 rounded-xl bg-zinc-950 p-2 border border-zinc-800/80">
                                         <!-- Score Header Badge (0-10) -->
                                         <div
                                             :class="getScoreColorClass(element.index)"
@@ -310,16 +350,16 @@ const getItemKey = (item: any) => item;
                                             :animation="150"
                                             tag="ul"
                                             group="items"
-                                            class="w-full flex-1 flex flex-col items-center gap-2 min-h-[300px] p-1 rounded-lg border border-dashed border-zinc-800 bg-zinc-900/40 overflow-y-auto"
+                                            class="w-full flex-1 flex flex-col items-center gap-2 min-h-[320px] p-1 rounded-lg border border-dashed border-zinc-800 bg-zinc-900/40 overflow-y-auto"
                                         >
                                             <template #item="{ element: item }">
                                                 <li v-if="item !== '/transparent.png'" class="relative group cursor-grab active:cursor-grabbing flex-shrink-0">
                                                     <NuxtImg
                                                         :src="item"
                                                         :class="{
-                                                            'h-16 w-16': aspectRatio === 'square',
-                                                            'aspect-[3/4] h-20 w-15': aspectRatio === 'poster',
-                                                            'aspect-video h-12 w-20': aspectRatio === 'widescreen'
+                                                            'h-20 w-20 sm:h-22 sm:w-22': aspectRatio === 'square',
+                                                            'aspect-[3/4] h-24 w-[72px] sm:h-26 sm:w-[78px]': aspectRatio === 'poster',
+                                                            'aspect-video h-14 w-24 sm:h-16 sm:w-28': aspectRatio === 'widescreen'
                                                         }"
                                                         class="rounded-lg object-cover border border-zinc-700/80 shadow-sm transition-transform group-hover:scale-105"
                                                         quality="75"
@@ -393,9 +433,9 @@ const getItemKey = (item: any) => item;
                                         <NuxtImg
                                             :src="item"
                                             :class="{
-                                                'h-16 w-16': aspectRatio === 'square',
-                                                'aspect-[3/4] h-20 w-15': aspectRatio === 'poster',
-                                                'aspect-video h-12 w-20': aspectRatio === 'widescreen'
+                                                'h-20 w-20 sm:h-22 sm:w-22': aspectRatio === 'square',
+                                                'aspect-[3/4] h-24 w-[72px] sm:h-26 sm:w-[78px]': aspectRatio === 'poster',
+                                                'aspect-video h-14 w-24 sm:h-16 sm:w-28': aspectRatio === 'widescreen'
                                             }"
                                             class="rounded-lg object-cover border border-zinc-700/80 shadow-sm transition-transform group-hover:scale-105"
                                             quality="75"
@@ -431,7 +471,7 @@ const getItemKey = (item: any) => item;
                                 <UTooltip :text="!isAuthenticated ? 'Faça login para salvar um ranking' : ''">
                                     <UButton
                                         @click="saveRanking"
-                                        label="Salvar Ranking"
+                                        label="Salvar"
                                         variant="solid"
                                         size="md"
                                         color="primary"
@@ -508,15 +548,14 @@ const getItemKey = (item: any) => item;
                                     <UButton
                                         @click="copyImageToClipboard"
                                         label="Copiar Imagem"
-                                        variant="soft"
-                                        color="gray"
+                                        variant="ghost"
                                         size="md"
                                         icon="i-heroicons-document-duplicate-20-solid"
-                                        class="w-full sm:w-auto rounded-xl"
+                                        class="w-full sm:w-auto rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/80 font-medium"
                                     />
                                     <UButton
                                         @click="downloadImage"
-                                        label="Baixar Imagem (PNG HD)"
+                                        label="Baixar"
                                         variant="solid"
                                         color="primary"
                                         size="md"
@@ -538,7 +577,7 @@ const getItemKey = (item: any) => item;
                             <div class="border-b border-zinc-800/80 pb-6">
                                 <div>
                                     <span class="text-xs font-bold uppercase tracking-wider text-yellow-400 block">
-                                        RANKING DE ZERO A DEZ
+                                        TEMA
                                     </span>
                                     <h2 class="text-3xl font-extrabold text-white leading-tight">
                                         {{ template?.name }}

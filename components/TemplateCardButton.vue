@@ -19,7 +19,7 @@ const deleteRanking = async () => {
     if (error.value) {
         toast.add({
             id: "error",
-            title: "Não foi possível excluir o template.",
+            title: "Não foi possível excluir o ranking.",
             description: "Tente novamente mais tarde.",
             color: "red"
         });
@@ -30,6 +30,7 @@ const deleteRanking = async () => {
 
     isDeleting.value = false;
     modal.value = false;
+    refreshNuxtData();
     toast.add({
         id: "success",
         title: "Ranking excluído com sucesso!",
@@ -38,23 +39,20 @@ const deleteRanking = async () => {
 };
 
 const handleClick = (e: Event) => {
-    if (action === "delete") {
-        e.preventDefault();
-        e.stopPropagation();
-        modal.value = true;
-    }
+    e.preventDefault();
+    e.stopPropagation();
+    modal.value = true;
 };
 </script>
 
 <template>
-    <div>
+    <div v-if="action === 'delete'">
         <UButton
             @click="handleClick"
-            :to="action === 'edit' ? `/profile/template/${templateId}` : undefined"
-            :icon="action === 'edit' ? 'i-heroicons-pencil-square-20-solid' : 'i-heroicons-trash-20-solid'"
+            icon="i-heroicons-trash-20-solid"
             variant="ghost"
             size="sm"
-            :color="action === 'delete' ? 'red' : 'white'"
+            color="red"
             class="absolute right-3 top-3 z-20 rounded-xl backdrop-blur-md bg-zinc-900/80 border border-zinc-700/60 hover:bg-zinc-800 hover:scale-105 transition-all duration-200 shadow-lg"
         />
 
@@ -90,4 +88,5 @@ const handleClick = (e: Event) => {
         </UModal>
     </div>
 </template>
+
 

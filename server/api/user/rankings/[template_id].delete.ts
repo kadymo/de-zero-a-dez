@@ -5,19 +5,30 @@ export default defineEventHandler(async (event) => {
     const { template_id } = getRouterParams(event);
 
     const session = await getServerSession(event);
+    if (!session?.user?.email) {
+        throw createError({
+            statusCode: 401,
+            statusMessage: "Você precisa estar autenticado para excluir um ranking."
+        });
+    }
 
     const user = await prisma.user.findUnique({
-        where: {
-            email: session?.user?.email!
-        },
-        include: { rankings: true }
+        where: { email: session.user.email }
     });
 
-    const ranking = user?.rankings.find((r) => r.templateId === template_id);
+    if (!user) {
+        throw createError({
+            statusCode: 404,
+            statusMessage: "Usuário não encontrado."
+        });
+    }
 
-    await prisma.ranking.delete({
+    await prisma.ranking.deleteMany({
         where: {
-            id: ranking?.id
+            userId: user.id,
+            templateId: template_id
         }
     });
+
+    return { success: true };
 });
