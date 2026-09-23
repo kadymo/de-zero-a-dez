@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
         const base64 = file.data.toString("base64");
         const fileURI = `data:${file.type};base64,${base64}`;
 
-        const { secure_url } = await cloudinary.uploader.upload(fileURI, { folder: "De Zero a Dez" });
+        const { secure_url } = await cloudinary.uploader.upload(fileURI, { folder: "De Zero a Dez", resource_type: "auto" });
 
         return secure_url;
     });

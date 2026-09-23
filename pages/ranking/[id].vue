@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Upload } from "@/types";
+import { isVideoUrl, validateMediaFile } from "@/utils/media";
 import { useStorage } from "@vueuse/core";
 import draggable from "vuedraggable";
 import { toPng } from "html-to-image";
@@ -48,7 +49,7 @@ const columns = useStorage(`columns_${route.params.id}`, [
 
 const { data: template } = await useFetch(`/api/templates/${route.params.id}`);
 
-const storedUploads = useStorage(`uploads_${route.params.id}`, []);
+const storedUploads = useStorage<string[]>(`uploads_${route.params.id}`, []);
 
 const displayedItems = computed({
     get() {
@@ -60,9 +61,9 @@ const displayedItems = computed({
     }
 });
 
-const { data: userRankings } = await useFetch("/api/user/rankings");
+const { data: userRankings } = await useFetch<any[]>("/api/user/rankings");
 const savedRanking = userRankings.value?.find((r: any) => r.templateId === route.params.id);
-if (savedRanking) columns.value = savedRanking.columns;
+if (savedRanking && Array.isArray(savedRanking.columns)) columns.value = savedRanking.columns as any;
 
 const validTemplateItems = computed(() => new Set([
     ...(template.value?.items || []),
@@ -86,6 +87,21 @@ watch([template, storedUploads], () => {
 
 const modal = ref(false);
 const shareModal = ref(false);
+const videoModal = ref(false);
+const selectedVideoUrl = ref<string | null>(null);
+
+const openVideoModal = (url: string) => {
+    if (isVideoUrl(url)) {
+        selectedVideoUrl.value = url;
+        videoModal.value = true;
+    }
+};
+
+const closeVideoModal = () => {
+    videoModal.value = false;
+    selectedVideoUrl.value = null;
+};
+
 const items = ref<FileList | null>(null);
 const isUploading = ref(false);
 const isSaving = ref(false);
@@ -99,7 +115,22 @@ const handleFileSelected = (e: InputEvent) => {
 };
 
 const handleUploadSubmit = async () => {
-    if (items.value) {
+    if (items.value && items.value.length) {
+        for (let i = 0; i < items.value.length; i++) {
+            const file = items.value[i];
+            const validation = validateMediaFile(file);
+            if (!validation.valid) {
+                toast.add({
+                    id: "file_error",
+                    title: "Arquivo não aceito",
+                    description: validation.error,
+                    color: "red",
+                    timeout: 8000
+                });
+                return;
+            }
+        }
+
         isUploading.value = true;
 
         const formData = new FormData();
@@ -111,7 +142,7 @@ const handleUploadSubmit = async () => {
             formData.append("file", items.value[i]);
 
             const { data: fileUpload } = await useFetch<Upload>(
-                "https://api.cloudinary.com/v1_1/dcxlgeobi/image/upload",
+                "https://api.cloudinary.com/v1_1/dcxlgeobi/auto/upload",
                 {
                     method: "POST",
                     body: formData
@@ -353,18 +384,42 @@ const getItemKey = (item: any) => item;
                                             class="w-full flex-1 flex flex-col items-center gap-2 min-h-[320px] p-1 rounded-lg border border-dashed border-zinc-800 bg-zinc-900/40 overflow-y-auto"
                                         >
                                             <template #item="{ element: item }">
-                                                <li v-if="item !== '/transparent.png'" class="relative group cursor-grab active:cursor-grabbing flex-shrink-0">
-                                                    <NuxtImg
+                                                <li
+                                                    v-if="item !== '/transparent.png'"
+                                                    @click="openVideoModal(item)"
+                                                    class="relative group cursor-grab active:cursor-grabbing flex-shrink-0"
+                                                >
+                                                    <video
+                                                        v-if="isVideoUrl(item)"
                                                         :src="item"
                                                         :class="{
                                                             'h-20 w-20 sm:h-22 sm:w-22': aspectRatio === 'square',
                                                             'aspect-[3/4] h-24 w-[72px] sm:h-26 sm:w-[78px]': aspectRatio === 'poster',
                                                             'aspect-video h-14 w-24 sm:h-16 sm:w-28': aspectRatio === 'widescreen'
                                                         }"
-                                                        class="rounded-lg object-cover border border-zinc-700/80 shadow-sm transition-transform group-hover:scale-105"
+                                                        class="rounded-lg object-cover border border-zinc-700/80 shadow-sm transition-transform group-hover:scale-105 pointer-events-none"
+                                                        muted
+                                                        preload="metadata"
+                                                    />
+                                                    <NuxtImg
+                                                        v-else
+                                                        :src="item"
+                                                        :class="{
+                                                            'h-20 w-20 sm:h-22 sm:w-22': aspectRatio === 'square',
+                                                            'aspect-[3/4] h-24 w-[72px] sm:h-26 sm:w-[78px]': aspectRatio === 'poster',
+                                                            'aspect-video h-14 w-24 sm:h-16 sm:w-28': aspectRatio === 'widescreen'
+                                                        }"
+                                                        class="rounded-lg object-cover border border-zinc-700/80 shadow-sm transition-transform group-hover:scale-105 pointer-events-none"
                                                         quality="75"
                                                         loading="lazy"
                                                     />
+
+                                                    <div
+                                                        v-if="isVideoUrl(item)"
+                                                        class="absolute bottom-1 right-1 bg-yellow-500/90 text-zinc-950 p-1 rounded border border-yellow-400 pointer-events-none shadow"
+                                                    >
+                                                        <UIcon name="i-heroicons-play-solid" class="w-3.5 h-3.5" />
+                                                    </div>
                                                 </li>
                                             </template>
                                         </draggable>
@@ -385,7 +440,7 @@ const getItemKey = (item: any) => item;
                                         </span>
                                     </h3>
                                     <p class="text-xs text-zinc-400 mt-0.5">
-                                        Arraste os itens para as colunas de 0 a 10 acima.
+                                        Arraste os itens para as colunas de 0 a 10 acima. Clique em um vídeo para assistir.
                                     </p>
                                 </div>
 
@@ -410,7 +465,7 @@ const getItemKey = (item: any) => item;
 
                                     <UButton
                                         @click="modal = true"
-                                        label="Adicionar fotos"
+                                        label="Adicionar itens"
                                         variant="ghost"
                                         size="sm"
                                         icon="i-heroicons-plus-20-solid"
@@ -429,18 +484,41 @@ const getItemKey = (item: any) => item;
                                 class="flex min-h-[110px] flex-wrap items-center gap-3 p-3 rounded-xl bg-zinc-950 border border-zinc-800"
                             >
                                 <template #item="{ element: item }">
-                                    <li class="relative group cursor-grab active:cursor-grabbing flex-shrink-0">
-                                        <NuxtImg
+                                    <li
+                                        @click="openVideoModal(item)"
+                                        class="relative group cursor-grab active:cursor-grabbing flex-shrink-0"
+                                    >
+                                        <video
+                                            v-if="isVideoUrl(item)"
                                             :src="item"
                                             :class="{
                                                 'h-20 w-20 sm:h-22 sm:w-22': aspectRatio === 'square',
                                                 'aspect-[3/4] h-24 w-[72px] sm:h-26 sm:w-[78px]': aspectRatio === 'poster',
                                                 'aspect-video h-14 w-24 sm:h-16 sm:w-28': aspectRatio === 'widescreen'
                                             }"
-                                            class="rounded-lg object-cover border border-zinc-700/80 shadow-sm transition-transform group-hover:scale-105"
+                                            class="rounded-lg object-cover border border-zinc-700/80 shadow-sm transition-transform group-hover:scale-105 pointer-events-none"
+                                            muted
+                                            preload="metadata"
+                                        />
+                                        <NuxtImg
+                                            v-else
+                                            :src="item"
+                                            :class="{
+                                                'h-20 w-20 sm:h-22 sm:w-22': aspectRatio === 'square',
+                                                'aspect-[3/4] h-24 w-[72px] sm:h-26 sm:w-[78px]': aspectRatio === 'poster',
+                                                'aspect-video h-14 w-24 sm:h-16 sm:w-28': aspectRatio === 'widescreen'
+                                            }"
+                                            class="rounded-lg object-cover border border-zinc-700/80 shadow-sm transition-transform group-hover:scale-105 pointer-events-none"
                                             quality="75"
                                             loading="lazy"
                                         />
+
+                                        <div
+                                            v-if="isVideoUrl(item)"
+                                            class="absolute bottom-1 right-1 bg-yellow-500/90 text-zinc-950 p-1 rounded border border-yellow-400 pointer-events-none shadow"
+                                        >
+                                            <UIcon name="i-heroicons-play-solid" class="w-3.5 h-3.5" />
+                                        </div>
                                     </li>
                                 </template>
                             </draggable>
@@ -490,7 +568,7 @@ const getItemKey = (item: any) => item;
                         <UCard class="bg-zinc-900 border-zinc-800">
                             <template #header>
                                 <div class="flex items-center gap-3">
-                                    <div class="p-2 rounded-xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                                    <div class="flex items-center justify-center shrink-0 p-2 rounded-xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
                                         <UIcon name="i-heroicons-photo-20-solid" class="w-6 h-6" />
                                     </div>
                                     <div>
@@ -505,10 +583,11 @@ const getItemKey = (item: any) => item;
                                     @change="handleFileSelected"
                                     type="file"
                                     multiple
-                                    accept="image/*"
+                                    accept="image/*,video/*"
                                     size="md"
                                     color="gray"
                                 />
+                                <p class="mt-1 text-xs text-zinc-500">Imagens (máx 1MB) e Vídeos (máx 10MB).</p>
                                 <div class="flex justify-end gap-2 pt-2">
                                     <UButton @click="modal = false" label="Cancelar" variant="ghost" color="gray" />
                                     <UButton
@@ -522,13 +601,49 @@ const getItemKey = (item: any) => item;
                         </UCard>
                     </UModal>
 
+                    <!-- Video Player Modal -->
+                    <UModal v-model="videoModal" @close="closeVideoModal" :ui="{ width: 'sm:max-w-3xl', rounded: 'rounded-2xl' }">
+                        <UCard class="bg-zinc-900 border-zinc-800 shadow-2xl">
+                            <template #header>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex items-center justify-center shrink-0 p-2.5 rounded-2xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                                            <UIcon name="i-heroicons-video-camera-20-solid" class="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h3 class="text-lg font-bold text-zinc-100">Reprodução de Vídeo</h3>
+                                            <p class="text-xs text-zinc-400">Assista ao vídeo em alta qualidade</p>
+                                        </div>
+                                    </div>
+                                    <UButton
+                                        color="gray"
+                                        variant="ghost"
+                                        icon="i-heroicons-x-mark-20-solid"
+                                        class="rounded-xl hover:bg-zinc-800"
+                                        @click="closeVideoModal"
+                                    />
+                                </div>
+                            </template>
+
+                            <div class="relative overflow-hidden rounded-xl bg-black border border-zinc-800 flex items-center justify-center min-h-[300px] max-h-[75vh]">
+                                <video
+                                    v-if="selectedVideoUrl"
+                                    :src="selectedVideoUrl"
+                                    controls
+                                    autoplay
+                                    class="w-full max-h-[75vh] object-contain rounded-xl"
+                                ></video>
+                            </div>
+                        </UCard>
+                    </UModal>
+
                     <!-- Share / Image Export Modal -->
                     <UModal v-model="shareModal" :ui="{ width: 'sm:max-w-2xl', rounded: 'rounded-2xl' }">
                         <UCard class="bg-zinc-900 border-zinc-800">
                             <template #header>
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-3">
-                                        <div class="p-2 rounded-xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                                        <div class="flex items-center justify-center shrink-0 p-2 rounded-xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
                                             <UIcon name="i-heroicons-sparkles-20-solid" class="w-6 h-6" />
                                         </div>
                                         <div>
@@ -603,17 +718,32 @@ const getItemKey = (item: any) => item;
                                     <!-- Items inside column -->
                                     <div class="w-full flex-1 flex flex-col items-center gap-2 min-h-[300px] p-1.5 rounded-lg border border-dashed border-zinc-800/60 bg-zinc-900/40">
                                         <template v-for="item in col.items">
-                                            <img
-                                                v-if="item && item !== '/transparent.png'"
-                                                :key="item"
-                                                :src="item"
-                                                :class="{
-                                                    'h-16 w-16': aspectRatio === 'square',
-                                                    'aspect-[3/4] h-20 w-15': aspectRatio === 'poster',
-                                                    'aspect-video h-12 w-20': aspectRatio === 'widescreen'
-                                                }"
-                                                class="rounded-lg object-cover border border-zinc-700/80 shadow-md"
-                                            />
+                                            <template v-if="item && item !== '/transparent.png'">
+                                                <video
+                                                    v-if="isVideoUrl(item)"
+                                                    :key="'v-' + item"
+                                                    :src="item"
+                                                    :class="{
+                                                        'h-16 w-16': aspectRatio === 'square',
+                                                        'aspect-[3/4] h-20 w-15': aspectRatio === 'poster',
+                                                        'aspect-video h-12 w-20': aspectRatio === 'widescreen'
+                                                    }"
+                                                    class="rounded-lg object-cover border border-zinc-700/80 shadow-md"
+                                                    muted
+                                                    preload="metadata"
+                                                />
+                                                <img
+                                                    v-else
+                                                    :key="'img-' + item"
+                                                    :src="item"
+                                                    :class="{
+                                                        'h-16 w-16': aspectRatio === 'square',
+                                                        'aspect-[3/4] h-20 w-15': aspectRatio === 'poster',
+                                                        'aspect-video h-12 w-20': aspectRatio === 'widescreen'
+                                                    }"
+                                                    class="rounded-lg object-cover border border-zinc-700/80 shadow-md"
+                                                />
+                                            </template>
                                         </template>
                                     </div>
                                 </div>

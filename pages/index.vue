@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useStorage } from "@vueuse/core";
+
 const { status } = useAuth();
 const isAuthenticated = computed(() => status.value === "authenticated");
 
@@ -9,6 +11,8 @@ const toggleModal = () => {
 
 provide("modal", { modal, toggleModal });
 
+const isBannerDismissed = useStorage("video_announcement_dismissed_v1", false);
+
 const page = ref(1);
 const search = ref("");
 const debouncedSearch = refDebounced(search, 400);
@@ -18,7 +22,7 @@ const { data: response, pending } = await useFetch("/api/templates", {
     watch: [debouncedSearch, page, modal]
 });
 
-const templates = computed(() => response.value?.templates || []);
+const templates = computed(() => (response.value?.templates as any) || []);
 const totalTemplates = computed(() => response.value?.total || 0);
 const totalPages = computed(() => response.value?.totalPages || 1);
 
@@ -200,6 +204,62 @@ const handlePageChange = (newPage: number) => {
                 </UModal>
             </main>
         </div>
+
+        <!-- Video Announcement Horizontal Popup Card -->
+        <Transition
+            enter-active-class="transition duration-300 ease-out"
+            enter-from-class="transform translate-y-10 opacity-0 scale-95"
+            enter-to-class="transform translate-y-0 opacity-100 scale-100"
+            leave-active-class="transition duration-200 ease-in"
+            leave-from-class="transform translate-y-0 opacity-100 scale-100"
+            leave-to-class="transform translate-y-10 opacity-0 scale-95"
+        >
+            <div
+                v-if="!isBannerDismissed"
+                class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-2xl z-50 bg-zinc-900/95 border border-yellow-500/30 backdrop-blur-xl shadow-2xl rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+            >
+                <div class="flex items-center gap-3.5 flex-1">
+                    <div class="flex items-center justify-center shrink-0 w-12 h-12 rounded-2xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 shadow-inner">
+                        <UIcon name="i-heroicons-video-camera-20-solid" class="w-6 h-6 animate-pulse" />
+                    </div>
+
+                    <div class="space-y-0.5">
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+                                <UIcon name="i-heroicons-sparkles-20-solid" class="w-3 h-3" /> Novidade
+                            </span>
+                            <h4 class="text-sm sm:text-base font-extrabold text-zinc-100">
+                                Agora o site suporta vídeos! 🎬
+                            </h4>
+                        </div>
+                        <p class="text-xs text-zinc-300 leading-snug">
+                            Crie templates e ranqueie vídeos juntos com imagens.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+                    <UButton
+                        v-if="isAuthenticated"
+                        @click="modal = true"
+                        label="Criar Template"
+                        size="xs"
+                        color="primary"
+                        variant="solid"
+                        class="rounded-xl font-bold px-3 py-1.5 shadow-md shadow-yellow-500/10"
+                    />
+                    <UButton
+                        @click="isBannerDismissed = true"
+                        color="gray"
+                        variant="ghost"
+                        icon="i-heroicons-x-mark-20-solid"
+                        size="xs"
+                        class="rounded-xl hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                        title="Fechar novidade"
+                    />
+                </div>
+            </div>
+        </Transition>
 
         <footer class="mt-16 border-t border-zinc-800/70 bg-zinc-950/60 py-6 px-6 text-center text-xs text-zinc-400">
             <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">

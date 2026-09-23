@@ -60,7 +60,7 @@ const handleClick = (e: Event) => {
             <UCard class="bg-zinc-900 border-zinc-800">
                 <template #header>
                     <div class="flex items-center gap-3">
-                        <div class="p-2 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20">
+                        <div class="flex items-center justify-center shrink-0 p-2 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20">
                             <UIcon name="i-heroicons-exclamation-triangle-20-solid" class="w-6 h-6" />
                         </div>
                         <div>

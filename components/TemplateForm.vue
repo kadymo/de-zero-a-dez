@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import draggable from "vuedraggable";
 import type { Modal, Upload } from "@/types";
+import { isVideoUrl, validateMediaFile } from "@/utils/media";
 
 const props = defineProps<{
     method: "POST" | "PUT";
@@ -21,12 +22,12 @@ const templateCover = ref<File | null>(null);
 const existingItems = ref<string[]>([]);
 const newItemsList = ref<{ id: string; file: File; url: string }[]>([]);
 
-const { modal } = inject<Modal>("modal") || { modal: ref(false) };
+const modalRef = inject<Modal>("modal")?.modal;
 
 const handleClose = () => {
     emit("close");
-    if (modal && modal.value) {
-        modal.value = false;
+    if (modalRef && isRef(modalRef)) {
+        modalRef.value = false;
     }
 };
 
@@ -64,7 +65,7 @@ const removeExistingItem = (index: number) => {
     existingItems.value.splice(index, 1);
     toast.add({
         id: "item_removed",
-        title: "Foto removida.",
+        title: "Item removido.",
         description: "Clique em 'Salvar Alterações' para confirmar.",
         color: "yellow",
         timeout: 3000
@@ -77,20 +78,36 @@ const removeNewItem = (index: number) => {
 };
 
 const handleFileSelected = (e: InputEvent) => {
-    const files = (e.target as HTMLInputElement).files!;
+    const files = (e.target as HTMLInputElement).files;
+    if (!files || !files.length) return;
 
     if ((e.target as HTMLInputElement).name === "cover") {
         templateCover.value = files[0];
     } else {
         const fileArr = Array.from(files);
-        newItemsList.value = [
-            ...newItemsList.value,
-            ...fileArr.map((file, i) => ({
+        const validFiles: { id: string; file: File; url: string }[] = [];
+
+        for (let i = 0; i < fileArr.length; i++) {
+            const file = fileArr[i];
+            const validation = validateMediaFile(file);
+            if (!validation.valid) {
+                toast.add({
+                    id: "file_error",
+                    title: "Arquivo não aceito",
+                    description: validation.error,
+                    color: "red",
+                    timeout: 6000
+                });
+                continue;
+            }
+            validFiles.push({
                 id: `${file.name}-${Date.now()}-${i}-${Math.random()}`,
                 file,
                 url: URL.createObjectURL(file)
-            }))
-        ];
+            });
+        }
+
+        newItemsList.value = [...newItemsList.value, ...validFiles];
     }
 };
 
@@ -151,17 +168,18 @@ const createTemplate = async () => {
         return;
     }
 
-    const hasLargeItem = newItemsList.value.some((item) => item.file.size > 1000000);
-
-    if (hasLargeItem) {
-        toast.add({
-            id: "error",
-            title: "As imagens devem ter um tamanho máximo de 1MB.",
-            description: "Você pode optar por usar um compressor de arquivos online para não perder a qualidade das imagens.",
-            color: "red",
-            timeout: 8000
-        });
-        return;
+    for (const item of newItemsList.value) {
+        const validation = validateMediaFile(item.file);
+        if (!validation.valid) {
+            toast.add({
+                id: "error",
+                title: "Arquivo não aceito",
+                description: validation.error,
+                color: "red",
+                timeout: 8000
+            });
+            return;
+        }
     }
 
     try {
@@ -186,7 +204,7 @@ const createTemplate = async () => {
             itemFormData.append("file", newItemsList.value[i].file);
 
             const fileUpload = await $fetch<Upload>(
-                "https://api.cloudinary.com/v1_1/dcxlgeobi/image/upload",
+                "https://api.cloudinary.com/v1_1/dcxlgeobi/auto/upload",
                 {
                     method: "POST",
                     body: itemFormData
@@ -235,7 +253,7 @@ const updateTemplate = async () => {
         toast.add({
             id: "error",
             title: "O template precisa de no mínimo 10 itens.",
-            description: `O template atualmente possui ${totalItemsCount} foto(s). Adicione mais fotos.`,
+            description: `O template atualmente possui ${totalItemsCount} item(ns). Adicione mais itens.`,
             color: "red"
         });
         return;
@@ -262,17 +280,18 @@ const updateTemplate = async () => {
 
         let filesUrls: string[] = [];
         if (newItemsList.value.length) {
-            const hasLargeItem = newItemsList.value.some((i) => i.file.size > 1000000);
-
-            if (hasLargeItem) {
-                toast.add({
-                    id: "error",
-                    title: "As imagens devem ter um tamanho máximo de 1MB.",
-                    description: "Você pode optar por usar um compressor de arquivos online.",
-                    color: "red",
-                    timeout: 8000
-                });
-                return;
+            for (const item of newItemsList.value) {
+                const validation = validateMediaFile(item.file);
+                if (!validation.valid) {
+                    toast.add({
+                        id: "error",
+                        title: "Arquivo não aceito",
+                        description: validation.error,
+                        color: "red",
+                        timeout: 8000
+                    });
+                    return;
+                }
             }
 
             for (let i = 0; i < newItemsList.value.length; i++) {
@@ -282,7 +301,7 @@ const updateTemplate = async () => {
                 itemFormData.append("file", newItemsList.value[i].file);
 
                 const fileUpload = await $fetch<Upload>(
-                    "https://api.cloudinary.com/v1_1/dcxlgeobi/image/upload",
+                    "https://api.cloudinary.com/v1_1/dcxlgeobi/auto/upload",
                     {
                         method: "POST",
                         body: itemFormData
@@ -345,7 +364,7 @@ const handleSubmit = async () => {
         <template #header>
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="p-2.5 rounded-2xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                    <div class="flex items-center justify-center shrink-0 p-2.5 rounded-2xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
                         <UIcon name="i-heroicons-pencil-square-20-solid" class="w-6 h-6" />
                     </div>
                     <div>
@@ -433,7 +452,13 @@ const handleSubmit = async () => {
                 >
                     <template #item="{ element: itemUrl, index }">
                         <div class="group relative aspect-square rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900 cursor-grab active:cursor-grabbing shadow-sm transition-transform hover:scale-[1.02]">
-                            <NuxtImg :src="itemUrl" class="w-full h-full object-cover pointer-events-none" quality="70" loading="lazy" />
+                            <video v-if="isVideoUrl(itemUrl)" :src="itemUrl" class="w-full h-full object-cover pointer-events-none" muted preload="metadata" />
+                            <NuxtImg v-else :src="itemUrl" class="w-full h-full object-cover pointer-events-none" quality="70" loading="lazy" />
+                            
+                            <div v-if="isVideoUrl(itemUrl)" class="absolute bottom-1 right-1 bg-yellow-500/90 text-zinc-950 p-1 rounded border border-yellow-400 pointer-events-none">
+                                <UIcon name="i-heroicons-play-solid" class="w-3 h-3" />
+                            </div>
+
                             <div class="absolute top-1 left-1 bg-zinc-950/85 text-yellow-400 rounded px-1.5 py-0.5 text-[10px] font-mono font-bold border border-zinc-800 pointer-events-none">
                                 #{{ index + 1 }}
                             </div>
@@ -455,7 +480,7 @@ const handleSubmit = async () => {
                 <div class="flex items-center justify-between">
                     <label class="block text-xs font-bold text-zinc-200 flex items-center gap-1.5">
                         <UIcon name="i-heroicons-bars-3-20-solid" class="text-yellow-500" />
-                        Novas Imagens Selecionadas ({{ newItemsList.length }})
+                        Novos Itens Selecionados ({{ newItemsList.length }})
                     </label>
                     <span class="text-[11px] text-zinc-400">Arraste para reorganizar antes de salvar</span>
                 </div>
@@ -469,7 +494,13 @@ const handleSubmit = async () => {
                 >
                     <template #item="{ element: item, index }">
                         <div class="group relative aspect-square rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900 cursor-grab active:cursor-grabbing shadow-sm transition-transform hover:scale-[1.02]">
-                            <img :src="item.url" class="w-full h-full object-cover pointer-events-none" />
+                            <video v-if="item.file.type.startsWith('video/') || isVideoUrl(item.url)" :src="item.url" class="w-full h-full object-cover pointer-events-none" muted preload="metadata" />
+                            <img v-else :src="item.url" class="w-full h-full object-cover pointer-events-none" />
+
+                            <div v-if="item.file.type.startsWith('video/') || isVideoUrl(item.url)" class="absolute bottom-1 right-1 bg-yellow-500/90 text-zinc-950 p-1 rounded border border-yellow-400 pointer-events-none">
+                                <UIcon name="i-heroicons-play-solid" class="w-3 h-3" />
+                            </div>
+
                             <div class="absolute top-1 left-1 bg-zinc-950/85 text-yellow-400 rounded px-1.5 py-0.5 text-[10px] font-mono font-bold border border-zinc-800 pointer-events-none">
                                 #{{ (isUpdate ? existingItems.length : 0) + index + 1 }}
                             </div>
@@ -477,7 +508,7 @@ const handleSubmit = async () => {
                                 type="button"
                                 @click.stop="removeNewItem(index)"
                                 class="absolute top-1 right-1 bg-red-950/90 hover:bg-red-900 text-red-300 p-1 rounded-md transition-opacity border border-red-500/30 shadow-md"
-                                title="Remover esta foto"
+                                title="Remover este item"
                             >
                                 <UIcon name="i-heroicons-trash-20-solid" class="w-3.5 h-3.5 text-red-400" />
                             </button>
@@ -487,20 +518,20 @@ const handleSubmit = async () => {
             </div>
 
             <UFormGroup
-                :label="isUpdate ? 'Adicionar novas imagens de itens' : 'Imagens dos Itens (no mínimo 10 fotos)'"
+                :label="isUpdate ? 'Adicionar novos itens (imagens e vídeos)' : 'Itens do Template (Fotos e Vídeos, no mínimo 10 itens)'"
                 :required="!isUpdate && !newItemsList.length"
             >
                 <UInput
                     @change="handleFileSelected"
                     type="file"
                     name="items"
-                    accept="image/*"
+                    accept="image/*,video/*"
                     size="md"
                     color="gray"
                     multiple
                     :required="!isUpdate && !newItemsList.length"
                 />
-                <p class="mt-1 text-xs text-zinc-500">Formato aceito: PNG, JPG (máximo 1MB por imagem).</p>
+                <p class="mt-1 text-xs text-zinc-500">Formato aceito: Fotos (PNG, JPG - máx 1MB) e Vídeos (MP4, WEBM - máx 10MB).</p>
             </UFormGroup>
 
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-zinc-800/80">
